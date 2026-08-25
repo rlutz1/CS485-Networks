@@ -95,7 +95,7 @@
 + **packet switch MUST receive the ENTIRE packet prior to transmitting the first bit of packet to outbound link**
 	+ get it all before passing along message
 + takes L/R seconds to transmit a packet to packet switch, and another L/R to transmit packet switch to destination (simplest case): **2L/R delay on this system**
-+ ![[Pasted image 20260820075136.png]]
++ ![alt text](images/Pasted image 20260820075136.png)
 	+ note: ignoring the processing packet step on receiving
 + if n links: **n(L/R) delay** 
 
@@ -120,11 +120,11 @@
 	+ reservation only restaurant
 	+ telephone network is example of this
 	+ end to end connection established when 2 machines want to chat
-	+ ![[Pasted image 20260820080914.png]]
+	+ ![alt text](images/Pasted image 20260820080914.png)
 + implementations
 	+ **frequency band multiplexing** -> circuit link dedicates a frequency band to each connection for the duration of the connection (frequency == bandwidth)
 	+ **time division multiplexing** -> circuit link assigns time slots to specific links for the connection
-	+ ![[Pasted image 20260820081450.png]]
+	+ ![alt text](images/Pasted image 20260820081450.png)
 + con: dedicated circuits are *idle during quiet periods*, as dirty packet switch lovers say
 	+ ie, someone stops talking on the phone but they're still on the phone.
 
@@ -134,7 +134,7 @@
 + circuit has risk of quiet period underutilization
 + circuit usually requires some complex handshaking to establish the link, making it harder to setup/maybe not as computationally efficient
 + typically, **packet is just more efficient given probabilities of people actively using their machines over passively**.
-+ ![[Pasted image 20260820084348.png]]
++ ![alt text](images/Pasted image 20260820084348.png)
 ## Questions
 
 + maybe having a hard time fully visualizing the TDM
@@ -155,7 +155,7 @@
 + diff between transmission and propagation: 
 	+ transmission is a function of packet's length and transmission rate of link--nothing to do with distance between A and B
 	+ prop is a function of distance between A and B, nothing to do with packet length or trans rate
-+ ![[Pasted image 20260820085502.png]]
++ ![alt text](images/Pasted image 20260820085502.png)
 + **total delay = process_d + queue_d + trans_d + prop_d**
 ### queue delay/packet loss
 
@@ -170,7 +170,7 @@
 
 ### end to end delay
 
-![[Pasted image 20260820091017.png]]
+![alt text](images/Pasted image 20260820091017.png)
 + **end2end_d = n_routers_enroute(process_d + trans_d + prop_d)**
 
 ### throughput
