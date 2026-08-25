@@ -1,5 +1,6 @@
+# HW 1
 
-# Q1
+## Q1
 
 *Review Figure 1.1 "Some pieces of the Internet" from the Kurose & Ross textbook.*
 
@@ -12,14 +13,14 @@
 - *Represent the structures and system however you see fit. The idea is to capture what you think is most relevant or visible in these networks.*
 - *If you are unsure of your answer, this is ok! There are no correct answers here.*
 
-## A1
+### A1
 
 --> Done, need to take pics for submission.
 
-# Q2
+## Q2
 
 *In at least 5 sentences, give a brief explanation of your sketches. What did you include at each level, and why?*
-## A2
+### A2
 
 + **Neighborhood Level**
 	+ When I think of neighborhoods, I typically just think about the houses and home internet specifically. Most homes get their internet connection by receiving access point/routers from their ISP. So, included individual homes with their hardware to have a connection to their regional provider for internet services.
@@ -29,9 +30,9 @@
 	+ An extension of the neighborhood, but focused on homes, people roaming with their mobile devices (connected to the network via cell towers), and businesses or enterprise generally that provide wifi. But, this is showing the general interconnection at a city level, in which all buildings at the end are interconnected to the global networks.
 + **State of New Mexico Level**
 	+ At the state level, I feel that likely we would see multiple regional ISP's floating around the state, and especially in New Mexico (see Project Jupyter and the like) likely some independent infrastructure (content provider networks) and data centers connected via that.
-# Q3
+## Q3
 
 *Did you use Generative AI for this assignment? If so, how?*
-## A3
+### A3
 
 I did not use GenAI.
