@@ -9,11 +9,35 @@ Steps:
 3. Referencing the details panel that opens on the right, answer:
     1. What status code did the server return?
     2. What version of HTTP is being used?
-    3. Name one request header you see that we have not discussed in class, and take your best guess at what it does.
+    3. Name one **request header** you see that we have not discussed in class, and take your best guess at what it does.
     4. Based on what you see, does the connection look persistent or non-persistent? Explain your reasoning.
     5. Upload a screenshot of the webpage and the detail view of the GET request.
 
 ### A1
+
+For this page (since it happened to be open): https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Animating_objects_with_WebGL
+
+
+1. Status code 304 -- Not Modified; returned when I ask a cache server, and it sends a conditional GET to the source server for a GET if it's been modified since the Last Modified that was saved on last object storage.
+   - Under request headers: If-Modified-Since Thu, 27 Aug 2026 02:31:55 GMT
+
+2. Version of HTTP: HTTP/2
+   - TODO: discuss this
+
+3. If-None-Match "3a6b2431fcaf39181e24c6b4575cd15d"
+   - response header has the same value under 
+     - etag "3a6b2431fcaf39181e24c6b4575cd15d"
+   - Best guess: maybe some sort of hashing for the object requested?
+   - [correct answer: makes the get conditional](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-None-Match?utm_source=devtools&utm_medium=devtools-netmonitor&utm_campaign=default)
+
+4. Connection appears consistent using the clue of this request header:
+   - Connection keep-alive
+
+5. Screenshots
+![all items](images/image.png)
+![detail 1](images/image-1.png)
+![detail 2](images/image-2.png)
+
 
 ## Q2
 
