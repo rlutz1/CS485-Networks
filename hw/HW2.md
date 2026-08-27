@@ -41,9 +41,15 @@ For this page (since it happened to be open): https://developer.mozilla.org/en-U
 
 ## Q2
 
-Referring to Figure 2.4 in the textbook, notice that none of the listed applications require both no data loss and high time-sensitivity. Can you think of an application that would need both? In at least 5 sentences, describe the application and explain why it needs each property.
+Referring to Figure 2.4 in the textbook, notice that **none** of the listed applications require both no data loss and high time-sensitivity. Can you think of an application that would need both? In at least 5 sentences, describe the application and explain why it needs each property.
 
 ### A2
+
+what is something that would need that both **no data loss** and **high time-sensitivity**
+
+- emergency alert system? needs to make sure that all who need the communication receive (no data loss) and it needs to be quick in order for rapid reponse (high time-sensitivity)
+  - security systems that contact police automatically?
+- medical something? not sure what medical something would critically rely on the network though in a real world scenario
 
 ## Q3
 
@@ -56,12 +62,60 @@ Consider each of the following stakeholders getting to decide how the network tr
 + Governments
 + Network engineers
 
-For each stakeholder, name a specific example (for instance, what kind of company, or what kind of user), then give one pro and one con of that stakeholder holding this decision power.
+For each stakeholder, name a **specific example** (for instance, what kind of company, or what kind of user), then give **one pro and one con** of that stakeholder holding this decision power.
 
-Finally, which of the four do you think would be the most fair approach, and why?
+Finally, which of the four do you think would be the **most fair approach**, and why?
 
 ### A3
 
+**speed and data loss**
+
+assume network can treat data differently and get certain things delivered faster.
+specific example of stakeholder
+one pro of that person/org in power
+one con of that person/org in power
+
+**Private companies**
+
+A specific example of a private company stakeholder would be if Meta controlled network traffic flow/speeds/treatment of the Internet.
+
+*Pro*
+
+A pro of a private company (like Meta) being in control of traffic treatment is 
+
+*Con*
+
+A con of a private company (like Meta) being in control of traffic treatment is that traffic priority could be given to data that suits the company over other traffic. Following the Meta example, what if Facebook interaction (site/messaging) was given a higher priority over other similar sites, like X/Twitter. That's an example of something that would be more annoying than anything, but what if Facebook traffic was given priority over something more serious, like banking transactions or emergency alert services, and those service speeds were throttled over the network or data was lost in the name of priority given to the company in charge? Because private companies are driven by cutt-throat competition, they are a dangerous thing to have in charge of network traffic flow and expect them to alltruistically treat data equally or give priority to the "correct" thing.
+
+**Individual users**
+
+NOTE: I am answering with the assumption with "users" plural meaning a group of users, not a a single individual.
+
+A specific example of an individual user stakeholder would be if all the students at UNM controlled network traffic flow/speeds/treatment at the UNM LAN.
+
+*Pro*
+
+A pro of individual users (like students) being in control of traffic treatment is that students could be in charge of priority of information speed and retention based on how close to a submission is to a deadline--faster and higher loss-prevention set by students submitting a panicked assignment at 11:59 PM. This could bring a better democratization to the network traffic among peers who share a common empathy.
+
+*Con*
+
+A con of individual users (like students) being in control of traffic treatment is trusting each user to be truthful about their needs. If we had 3 students on campus who came in to online game and deceitfully set a higher priority for their network traffic. This could potentially detract from traffic from other students who genuinely (and maybe desperately) need it. 
+
+**Governments**
+
+*Pro*
+
+A specific example of a governmental stakeholder would be if _ controlled network traffic flow/speeds/treatment 
+
+*Con*
+
+**Network engineers**
+
+*Pro*
+
+*Con*
+
+**Most fair approach**
 
 ## Q4
 
