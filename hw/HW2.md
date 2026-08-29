@@ -77,6 +77,8 @@ one con of that person/org in power
 
 **Private companies**
 
+*Example*
+
 A specific example of a private company stakeholder would be if Meta controlled network traffic flow/speeds/treatment of the Internet.
 
 *Pro*
@@ -91,6 +93,8 @@ A con of a private company (like Meta) being in control of traffic treatment is 
 
 NOTE: I am answering with the assumption with "users" plural meaning a group of users, not a a single individual.
 
+*Example*
+
 A specific example of an individual user stakeholder would be if all the students at UNM controlled network traffic flow/speeds/treatment at the UNM LAN.
 
 *Pro*
@@ -103,17 +107,31 @@ A con of individual users (like students) being in control of traffic treatment 
 
 **Governments**
 
+*Example*
+
+A specific example of a governmental stakeholder would be if the US government (federal) controlled network traffic flow/speeds/treatment in the US.
+
 *Pro*
 
-A specific example of a governmental stakeholder would be if _ controlled network traffic flow/speeds/treatment 
+A pro of a governmental body (like the federal US government) would be a standardization of network traffic expectations and infrastructure across the nation. This could be especially beneficial for people in rural areas without the most standard infrastructure (either using the DSL that has questionable speeds in their area, or nothing at all in that area). The government has the potential to conduct operations in the style of the New Deal in the Great Depression era to take on large scale public improvement projects, thus the large-scale standardization of network functionality is the largest perk to a controlling governmental body, in my opinion.
 
 *Con*
+
+A con of a governmental body (like the federal US governemnt) would be the flip-side of the pro above: what if the government was a corrupt body? It's an obvious point (and maybe more evident in our current controversial political climate in the US), but something that could affect everyone in the nation. There comes the possibility of marginalized communities having their speed throttled or data prioritization affected (increasing the data loss likelihood) just because that community is the one villified by that political power. There is a high potential for great improvement in encouraging a nation-wide standard; however, lately government bodies have proven to be remarkably fickle.
 
 **Network engineers**
 
+*Example*
+
+A specific example of a network engineer stakeholder would be if there could be a governing body in the fashion of the Internet Engineering Task Force that controlled network traffic flow/speeds/treatment on a global scale.
+
 *Pro*
 
+A pro of a group of network engineers would be the focus on design and efficiency of network traffic. These people would be focused on scaleability, improvement of speed, and decrease in data loss when designing any changes to the system. Having this high level design made by people who understand networking at a fundamental level would be a net benefit for all, since good design in systems can only help the system function more smoothly for all.
+
 *Con*
+
+A con of a group of network engineers would be questionable funding of such an operation. This group would be a benefit to all who use the global network, but how are they being funded to make improvements, set standards, and anything else? These are not people likely doing this for charity--and likely we don't want them to because we need people who are solely motivated towards this task. Therefore, the group must be funded from something, and that something will have its own agendas--as mentioned about private companies and governments above. So, as ideal a situation it may seem, the goal may be corrupted by where the money flows from.
 
 **Most fair approach**
 
