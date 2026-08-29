@@ -17,27 +17,36 @@ Steps:
 
 For this page (since it happened to be open): https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Animating_objects_with_WebGL
 
++ Status code 304 -- Not Modified
 
-1. Status code 304 -- Not Modified; returned when I ask a cache server, and it sends a conditional GET to the source server for a GET if it's been modified since the Last Modified that was saved on last object storage.
-   - Under request headers: If-Modified-Since Thu, 27 Aug 2026 02:31:55 GMT
+According to the textbook this is returned when my machine uses a cache server (proxy), and it sends a conditional GET to the source server for a GET if it's been modified since the Last Modified returned on the last object request. Under request headers, you can see the Last Modified date that has been stored by the proxy server: If-Modified-Since Thu, 27 Aug 2026 02:31:55 GMT. 
 
-2. Version of HTTP: HTTP/2
-   - TODO: discuss this
+As a note, this request was made over Lobo WiFi. I am curious to know then if UNM has its own cache servers, or if this is from the service provider. As pages 109 - 112 of the textbook cover, it seems in UNM's best interest to have a caching server to greatly reduce traffic intensity considering how many users there are at one time.
 
-3. If-None-Match "3a6b2431fcaf39181e24c6b4575cd15d"
++ Version of HTTP: HTTP/2
+
+This version of HTTP seems to be more the norm than the oddity now; from some cursory research it appears that most browsers have supported it since 2015, and considering its optimizations in decreasing latency over HTTP/1.1, it seems natural that most requests I send through are using this new version.
+
++ Request header not discussed: If-None-Match "3a6b2431fcaf39181e24c6b4575cd15d"
+
+/*
    - response header has the same value under 
      - etag "3a6b2431fcaf39181e24c6b4575cd15d"
    - Best guess: maybe some sort of hashing for the object requested?
    - [correct answer: makes the get conditional](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-None-Match?utm_source=devtools&utm_medium=devtools-netmonitor&utm_campaign=default)
+*/
 
-4. Connection appears consistent using the clue of this request header:
-   - Connection keep-alive
+My best guess as to what this does is that this is some sort of hashing as to the original object requested. The response header also contains the field: etag "3a6b2431fcaf39181e24c6b4575cd15d", implying that perhaps the hashing was found.
 
-5. Screenshots
+(As a later looking into out of curiosity, this header field is what makes the GET request conditional in the first place, which aligns with the 304 code implying we are requesting through a cache server. Adding this request header from the client says to search for an object of this specific version that has already been loaded before, tied to this "etag"; if the etags match, a 304 is returned since the file has not been modified, otherwise a 200 is returned with the new version. This is an interesting method to make caching more efficient on checks for modification. Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-None-Match?utm_source=devtools&utm_medium=devtools-netmonitor&utm_campaign=default, https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag).
+   
+
++ Connection appears consistent using the clue of this request header: Connection: keep-alive. Interesting though, according to https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Connection, this is primarily ignored by browsers in HTTP/2.
+
++ Screenshots
 ![all items](images/image.png)
 ![detail 1](images/image-1.png)
 ![detail 2](images/image-2.png)
-
 
 ## Q2
 
@@ -45,11 +54,20 @@ Referring to Figure 2.4 in the textbook, notice that **none** of the listed appl
 
 ### A2
 
-what is something that would need that both **no data loss** and **high time-sensitivity**
+/*
+   what is something that would need that both **no data loss** and **high time-sensitivity**
 
-- emergency alert system? needs to make sure that all who need the communication receive (no data loss) and it needs to be quick in order for rapid reponse (high time-sensitivity)
-  - security systems that contact police automatically?
-- medical something? not sure what medical something would critically rely on the network though in a real world scenario
+   - emergency alert system? needs to make sure that all who need the communication receive (no data loss) and it needs to be quick in order for rapid reponse (high time-sensitivity)
+   - security systems that contact police automatically?
+   - medical something? not sure what medical something would critically rely on the network though in a real world scenario
+*/
+
+Unfortunately an obvious answer, but emergency services would have the unflinching requirements of no data loss and high time-sensitivity. We can consider an application with its purpose something like an Amber Alert system. This system would need messages to be sent out quickly in order to have people on the lookout as soon as possible for a kidnapped child. Further, the messages cannot be lost--what if the one person who does not receive the alert is parked next to the exact car in the description, holding the child? 
+
+Another interesting emergency application comes from a connection made to something read earlier this year: https://sfreporter.com/news/mescalero-apache-teens-build-wildfire-and-flood-sensors/
+
+To sum up, som indigenous teens are working on an e-nose sensor to detect hazardous chemicals in the air to ideally detect a wildfire in its early stages, and then the sensor is rigged to a system to send out an automatic emergency services call; they are also working on similar technology for sensing flooding for the same auto-alert trigger. This is a great example of something that needs to be quick and not fail to get the message through--the repercussions could be catastrophic, expecially considering how fast wildfires can spread as of late. This specific application is especially interesting considering the notorious network issues on tribal lands. This is an amazing idea, but if the infrastructure itself is poor in these areas, how successful can a system like this be? 
+
 
 ## Q3
 
