@@ -68,12 +68,14 @@ Finally, which of the four do you think would be the **most fair approach**, and
 
 ### A3
 
-**speed and data loss**
+/*
+   **speed and data loss**
 
-assume network can treat data differently and get certain things delivered faster.
-specific example of stakeholder
-one pro of that person/org in power
-one con of that person/org in power
+   assume network can treat data differently and get certain things delivered faster.
+   specific example of stakeholder
+   one pro of that person/org in power
+   one con of that person/org in power
+*/
 
 **Private companies**
 
@@ -83,15 +85,13 @@ A specific example of a private company stakeholder would be if Meta controlled 
 
 *Pro*
 
-A pro of a private company (like Meta) being in control of traffic treatment is 
+A pro of a private company (like Meta) being in control of traffic treatment is that their drive to be the top company in our capitalist society may drive them to constantly seek improvements to network traffic. Since another company could hypothetically come up with a solution for improvement and wrest control away from, say, Meta, Meta would have it in their best interest to keep innovating and improving, which would be a net benefit for users.
 
 *Con*
 
-A con of a private company (like Meta) being in control of traffic treatment is that traffic priority could be given to data that suits the company over other traffic. Following the Meta example, what if Facebook interaction (site/messaging) was given a higher priority over other similar sites, like X/Twitter. That's an example of something that would be more annoying than anything, but what if Facebook traffic was given priority over something more serious, like banking transactions or emergency alert services, and those service speeds were throttled over the network or data was lost in the name of priority given to the company in charge? Because private companies are driven by cutt-throat competition, they are a dangerous thing to have in charge of network traffic flow and expect them to alltruistically treat data equally or give priority to the "correct" thing.
+A con of a private company (like Meta) being in control of traffic treatment is that traffic priority could be given to data that suits the company over other traffic. Following the Meta example, what if Facebook interaction (site/messaging) was given a higher priority over other similar sites, like X/Twitter. That's an example of something that would be more annoying than anything, but what if Facebook traffic was given priority over something more serious, like banking transactions or emergency alert services, and those service speeds were throttled over the network or data was lost in the name of priority given to the company in charge? As a further concern to traffic boosts for the company's purpose, they exist to make money, so there is nothing to stop a company for offering better usage to customers who are willing to pay more. This was a huge concern in the attempted acquisition of PNM by Blackstone that was recently in the New Mexico buzz (https://www.kob.com/new-mexico/opponents-supporters-sound-off-over-proposed-pnm-acquisition-by-blackstone/). Because private companies are driven by cutt-throat competition and money, they are a dangerous thing to have in charge of network traffic flow and expect them to alltruistically treat data equally or give priority to the "correct" thing. 
 
 **Individual users**
-
-NOTE: I am answering with the assumption with "users" plural meaning a group of users, not a a single individual.
 
 *Example*
 
@@ -103,7 +103,7 @@ A pro of individual users (like students) being in control of traffic treatment 
 
 *Con*
 
-A con of individual users (like students) being in control of traffic treatment is trusting each user to be truthful about their needs. If we had 3 students on campus who came in to online game and deceitfully set a higher priority for their network traffic. This could potentially detract from traffic from other students who genuinely (and maybe desperately) need it. 
+A con of individual users (like students) being in control of traffic treatment is trusting each user to be truthful about their needs. If we had 3 students on campus who came in to online game and deceitfully set a higher priority for their network traffic. This could potentially detract from traffic from other students who genuinely (and maybe desperately) need it. Unfortunately, people can easily talk themselves into prioritizing their needs over the group quite easily.
 
 **Governments**
 
@@ -134,6 +134,8 @@ A pro of a group of network engineers would be the focus on design and efficienc
 A con of a group of network engineers would be questionable funding of such an operation. This group would be a benefit to all who use the global network, but how are they being funded to make improvements, set standards, and anything else? These are not people likely doing this for charity--and likely we don't want them to because we need people who are solely motivated towards this task. Therefore, the group must be funded from something, and that something will have its own agendas--as mentioned about private companies and governments above. So, as ideal a situation it may seem, the goal may be corrupted by where the money flows from.
 
 **Most fair approach**
+
+Obviously, all approaches have their problems. I personally think that the network engineers would be the most fair approach, given that it would be run by people who understand the technical pieces, have a just interest in improvements, with hypothetically no ulterior motives (unless, as mentioned, influenced by a funder). A company is so driven by profit that it feels very dangerous to put them in charge of something that is practically a necessity to survive in our society now. A government, likewise, easily can sway to the political climate of the nation, which can easily turn on any group of people in a negative way. A group of users sounds like a nice idea in theory--especially the democratic aspect of it--but it feels like it would end up being like herding cats; each person will have their motives and may let their priorities win over the needs of the group as a whole. At least if a standard group of technically knowledgable people had control, and not for profit or political prowess, it feels like the most fair approach for users across the nation from an objective standpoint. 
 
 ## Q4
 
