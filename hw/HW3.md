@@ -216,21 +216,87 @@ Find an email you've recently received and look at its full header (most email c
 
 ### A3
 
+Screenshot:
+![dad email](images/image-5.png)
+
+As seen above, there are 5 total lines containing "Received". The received headers are the most recent first, so the below list starts from the bottom and works its way up (origin -> myself).
+
+1. *Received: by mx.zohomail.com with SMTPS id 1782087951040415.15382832983266; Sun, 21 Jun 2026 17:25:51 -0700 (PDT)*
+
+This is the initial sending of Mark (sender) to his mail server (mx.zohomail.com), using SMTPS. It appears the domain name 'mx.zohomail.com' is a domain name for the mail server used.
+
+2. *Received-SPF: pass (google.com: domain of mark@lutzmv.us designates 136.143.188.12 as permitted sender) client-ip=136.143.188.12;*
+
+Briefly, SPF is an email authentication protocol in which you can authorize specific domains to send mail on behalf of your domain. This aligns with what is seen in (1); by doing an nslookup:
+
+```
+> nslookup 136.143.188.12
+Server:  UnKnown
+Address:  192.168.10.1
+
+Name:    sender4-op-o12.zoho.com
+Address:  136.143.188.12
+```
+
+We see it is sending through the 'zoho.com' domain, clearly a mail server for sending mail out. So, this step implies that google.com (the mail is in my Gmail account) has received the SMTPS and has run a preliminary check on Mark's TXT records to see if zoho has been authorized to send mail on his behalf. We can see the TXT record here, confirming the "pass":
+
+```
+> nslookup -type=TXT lutzmv.us
+Server:  UnKnown
+Address:  192.168.10.1
+
+Non-authoritative answer:
+lutzmv.us       text =
+
+        "v=spf1 include:zoho.com ~all"
+```
+
+3. *Received: from sender4-op-o12.zoho.com (sender4-op-o12.zoho.com. [136.143.188.12]) by mx.google.com with ESMTPS id d9443c01a7336-2c743a0abeesi92189705ad.111.2026.06.21.17.25.55 for <lutz.roxanne@gmail.com> (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256); Sun, 21 Jun 2026 17:25:55 -0700 (PDT)*
+
+Once the SPF check has passed, official receipt and acceptance of the message occurs (that way if SPF check fails, data can be outright rejected without even accepting). We see confirmation of the sending domain we found from the reverse IP nslookup ('sender4-op-o12.zoho.com'); and we see that the message has been received my Google's mail servers: 'mx.google.com' for my receipt ('lutz.roxanne@gmail.com').
+
+4. *X-Received: by 2002:a17:903:90d:b0:2ba:838b:bfae with SMTP id d9443c01a7336-2c719627a7fmr94937185ad.18.1782087955778; Sun, 21 Jun 2026 17:25:55 -0700 (PDT)*
+
+X-Received is a non-standard header used for internal records or internal server passing information. So likely an internal tracking of some movement within Google's mail servers.
+
+[A source on X-headers generally.](https://dmarceye.com/glossary/x-headers)
+
+5. *Received: by 2002:a05:6214:2d49:b0:8dd:a652:4eab with SMTP id na9csp2111612qvb; Sun, 21 Jun 2026 17:25:56 -0700 (PDT)*
+
+The final receipt, and final indication that the message has arrived to the server with my mailbox. Successful delivery!
+
+
+#### notes
+
+also a note on X-
+
+https://security.stackexchange.com/questions/103563/what-is-the-difference-between-x-received-and-received-in-email-header
+
+
 ## Q4
 
 Suppose your department has a local DNS server used by everyone in the department, and you are an ordinary user, not a network or system administrator. Is there a way for you to determine whether an external website was likely accessed from a computer in your department within the last couple of seconds? Explain your reasoning. 
 
 ### A4
 
+DNS uses UDP. So hypothetically, you could spy on unencrypted UDP traffic over the network to see DNS requests. Seeing if this is valid with WireShark.
+
+#### notes
+
+[udp used for dns protocol?](https://www.geeksforgeeks.org/computer-networks/why-does-dns-use-udp-and-not-tcp/)
+
 ## Q5
 
 What is your GitHub username? (If you don't have one, please create it first, and then paste your username below)
 
-
 ### A5
+
+rlutz1
 
 ## Q6
 
 Did you use Generative AI for this assignment? If so, how?
 
 ### A6
+
+I did not use GenAI for this assignment.

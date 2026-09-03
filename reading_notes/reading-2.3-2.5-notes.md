@@ -131,7 +131,8 @@ general communication flow (www.amazon.com):
 2. client contacts a single TLD server, getting IP address for authoritative server for amazon.com
 3. contact one of the authoritative servers for amazon.com, and get back IP address for www.amazon.com.
 
-**third server: local dns server** -- ISP has a local dns server; acts as a proxy between requester and dns hierarchy; typically close to the person using network
+**third server: local dns server** -- ISP has a local dns server; acts as a proxy *between requester and dns hierarchy*; typically close to the person using network
++ see: nslookup (default dns server)
 + speed benefit?
 ![my own dns server](images/image-29.png)
 
