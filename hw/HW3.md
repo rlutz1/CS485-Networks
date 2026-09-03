@@ -62,6 +62,7 @@ Output:
 Server:  unm-ns2.unm.edu
 Address:  10.3.33.10
 
+// A
 Non-authoritative answer:
 Name:    studiox.com
 Addresses:  104.21.19.241
@@ -70,6 +71,7 @@ Addresses:  104.21.19.241
 Server:  unm-ns2.unm.edu
 Address:  10.3.33.10
 
+// NS
 Non-authoritative answer:
 studiox.com     nameserver = serena.ns.cloudflare.com
 studiox.com     nameserver = rory.ns.cloudflare.com
@@ -80,9 +82,11 @@ rory.ns.cloudflare.com  internet address = 172.64.35.166
 serena.ns.cloudflare.com        internet address = 108.162.192.220
 serena.ns.cloudflare.com        internet address = 172.64.32.220
 serena.ns.cloudflare.com        internet address = 173.245.58.220
+
 Server:  unm-ns2.unm.edu
 Address:  10.3.33.10
 
+// MX
 Non-authoritative answer:
 studiox.com     MX preference = 0, mail exchanger = mail.studiox.com
 ```
@@ -101,6 +105,7 @@ Output:
 Server:  rory.ns.cloudflare.com
 Address:  162.159.44.166
 
+// A
 Name:    studiox.com
 Addresses:  104.21.19.241
           172.67.190.127
@@ -108,11 +113,14 @@ Addresses:  104.21.19.241
 Server:  rory.ns.cloudflare.com
 Address:  162.159.44.166
 
+// NS
 studiox.com     nameserver = rory.ns.cloudflare.com
 studiox.com     nameserver = serena.ns.cloudflare.com
+
 Server:  rory.ns.cloudflare.com
 Address:  162.159.44.166
 
+// MX
 studiox.com     MX preference = 0, mail exchanger = mail.studiox.com
 mail.studiox.com        internet address = 205.174.25.155
 ```
@@ -131,6 +139,7 @@ Output:
 Server:  serena.ns.cloudflare.com
 Address:  172.64.32.220
 
+// A
 Name:    studiox.com
 Addresses:  104.21.19.241
           172.67.190.127
@@ -138,29 +147,66 @@ Addresses:  104.21.19.241
 Server:  serena.ns.cloudflare.com
 Address:  172.64.32.220
 
+// NS
 studiox.com     nameserver = rory.ns.cloudflare.com
 studiox.com     nameserver = serena.ns.cloudflare.com
+
 Server:  serena.ns.cloudflare.com
 Address:  172.64.32.220
 
+// MX
 studiox.com     MX preference = 0, mail exchanger = mail.studiox.com
 mail.studiox.com        internet address = 205.174.25.155
 ```
 
 *Summary and Differences*
 
-[non auth](https://serverfault.com/questions/413124/dns-nslookup-what-is-the-meaning-of-the-non-authoritative-answer)
+To summarize what is generally returned: 
+1. A record: Returns the host name and the IP address at which the host is located.
+2. NS record: Returns the authoritative name server names that contain the IP address location of the host name.
+3. MX record: Returns the name of the mail server, and the IP of the mail server.
 
+Some differences between name servers/interesting things noted:
++ Non-Authoritative Answer
+  + This is indicated only on the local DNS server. This indicates that we are not getting the information back on the *legitimate authoritative DNS server*, ie serena and rory cloudflare servers.
++ studiox.com returns 2 A record IPs 
+  + From a little looking, this is the effect of Cloudflare being the DNS provider. Cloudflare essentially provides a proxy in which you are visiting a Cloudflare IP, and then only Cloudflare communicates with the raw host IP.
+    + [Source thread](https://community.cloudflare.com/t/a-record-shows-2-ip-addresses-domain-not-adding/396127/6), [Proxy docs](https://developers.cloudflare.com/learning-paths/prevent-ddos-attacks/baseline/proxy-dns-records/#how-it-works)
++ MX record "mail.studiox.com" information is not returned by the default name server, but is by the official authoritatives.
+  + We can try another nameserver to see if this is reproduced:
+  ```
+  $ nslookup -type=MX studiox.com 8.8.8.8
+  Server:  dns.google
+  Address:  8.8.8.8
+
+  Non-authoritative answer:
+  studiox.com     MX preference = 0, mail exchanger = mail.studiox.com
+  ```
+  + This suggests that unless you query the direct authoritative, there is not a second query for the A record of the mail server. From some reading, it appears that IP addresses are not allowed in MX records--only hostnames. So, best theory is that nslookup did a secondary query for the IP of mail.studiox.com, but only when going to the direct studiox.com authoritative server. See:
+  ```
+  $ nslookup -type=A mail.studiox.com 
+  Server:  unm-ns2.unm.edu
+  Address:  10.3.33.10
+
+  Non-authoritative answer:
+  Name:    mail.studiox.com
+  Address:  205.174.25.155   // same IP returned from auth server
+  ```
++ MX record information
+  + MX preference: priority is typically used for load balancing (equal priority for 2 MX record servers) or prioritization (try this mail server first, but if it fails, try this one). Since the priority is 0 in this case, and there is only one MX record, we can likely assume this is because there is only one mail server, so the priority is essentially unused here, but 0 would be the highest priority over others (lowest number == highest priority).
+  + mail exchanger: refers to the hostname that is the mail server in actuality for email addresses under example@studiox.com.
 
 #### A1 notes
 
 ![wiki](images/image-3.png)
 
+[non auth](https://serverfault.com/questions/413124/dns-nslookup-what-is-the-meaning-of-the-non-authoritative-answer)
+
 + queries a decentralized network of registration data bases mantained by domain registries, registrars....
 
 ## Q2
 
-Consider a short, 10 meter link, over which a sender can transmit at a rate of 150 bits/sec in both directions. Suppose that packets containing data are 100,000 bits long, and packets containing only control (e.g., ACK or handshaking) information are 200 bits long, and that there are N parallel connections, each of which gets 1/N of the link bandwidth. Now consider the HTTP protocol, and suppose that each downloaded object is 100 Kbits long, and the initial downloaded object contains 10 referenced objects from the same server. Would parallel downloads via parallel instances of non-persistent HTTP make sense in this scenario? Now consider persistent HTTP. Do you expect significant gains over the non-persistent case? Justify and explain your answer. 
+Consider a short, 10 meter link, over which a sender can transmit at a rate of 150 bits/sec in both directions. Suppose that packets containing data are 100,000 bits long, and packets containing only control (e.g., ACK or handshaking) information are 200 bits long, and that there are N parallel connections, each of which gets 1/N of the link bandwidth. Now consider the HTTP protocol, and suppose that each downloaded object is 100 Kbits long, and the initial downloaded object contains 10 referenced objects from the same server. **Would parallel downloads via parallel instances of non-persistent HTTP make sense in this scenario?** Now consider persistent HTTP. **Do you expect significant gains over the non-persistent case? Justify and explain your answer.** 
 
 ### A2
 
