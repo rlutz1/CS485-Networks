@@ -210,6 +210,112 @@ Consider a short, 10 meter link, over which a sender can transmit at a rate of 1
 
 ### A2
 
+(a) "Would parallel downloads via parallel instances of non-persistent HTTP make sense in this scenario?"
+
+Let's assume for this we are making HTTP requests from a single client machine. Let also: K -> the total number of objects being requested (11 in this case), N -> the total number of parallel TCP connections server side.
+
+To get the entire webpage, we would need roughly the following process:
+
+1. TCP connection handshake (request and acknowledgement).
+2. HTTP request (GET, for example)
+3. HTTP response (with the object requested)
+4. Repeat steps 1 - 3 until all K objects are requested.
+
+We can formalize this further as:
+
+```
+init_req_to_resp = t_tcp_one_connect + t_http_req + t_http_resp_one_connect
+req_to_resp = t_tcp + t_http_req + t_http_resp
+
+t_total = init_req_to_resp + req_to_resp * (K - 1) * (1 / N)
+        = init_req_to_resp + req_to_resp * ((K - 1) / N)
+```
+
+The reasoning behind the above is `t_tcp` is the time to establish a TCP connection (step 1), `t_http_req` is the time to send an HTTP request from client (step 2), and `t_http_resp` is the time to receive back an HTTP response from server factoring in a parallel bandwidth limit, whereas t_http_resp_one_connect allows for all bandwidth to the initial single response regardless. We have an inital main object request (initial `init_req_to_resp`) from the server, and then we must ask for all the `K - 1` linked objects coming from that initial object request (`req_to_resp * (K - 1)`). But, we have to factor in the fact that these requests can happen in parallel, so we can lessen the number of those requests by a factor of `1 / N`. For example, if `N = 1`, we are basically performing the requests in serial, thus `t_total = init_req_to_resp + req_to_resp * (K - 1)`. Further, if N = 10, we can get the last `K - 1` objects all over parallel connections, taking total time of `t_total = init_req_to_resp + req_to_resp` (when `K = 11` here).
+
+(NOTE: this is by no means a thorough mathematical formulation, but a way to extract a mathematic visual of this relationship).
+
+Given the problem parameters, we can identify the following rough times, considering the `1 / N` limitation on bandwidth on the return traffic
+```
+t_tcp = handshake req from client + handshake ACK from server
+      = (200 b) / (150 b/s) + (200 b) / (150/N b/s)
+      = (1.33 s) + (1.33 s) N
+      = (1.33 s) (1 + N)
+
+t_http_req = http req from client (no data with it), assume as a
+             pseudo-control operation
+           = (200 b) / (150 b/s)
+           = 1.33 s
+
+t_http_resp = http resp from server with the data chunk and
+              control info
+            = ((200 b) + (100000 b)) / (150/N b/s)
+            = (668 s) N  
+
+t_tcp_one_connect = handshake req from client + handshake ACK 
+                    from server, no bandwidth limit
+                  = (200 b) / (150 b/s) + (200 b) / (150 b/s)
+                  = (1.33 s) + (1.33 s)
+                  = (2.66 s) 
+
+t_http_resp_one_connect = http resp from server with the data
+                          chunk and control info, no bandwidth
+                          limit
+                        = ((200 b) + (100000 b)) / (150 b/s)
+                        = (668 s)  
+```
+
+So, if we had a completely serial operation with `N = 1`: 
+
+```
+t_total = init_req_to_resp + req_to_resp * ((K - 1) / N)
+        = (672 s) + ((1.33 s) * (2) + (1.33 s) + (668 s)) * (10)
+        = 7391.9 s = 2.05 hrs
+```
+
+And if we introduce parallel connections `N = 4`, `N = 10`:
+
+```
+N = 4
+t_total = init_req_to_resp + req_to_resp * ((K - 1) / N)
+        = (672 s) + ((1.33 s) * (5) + (1.33 s) + (668 s) * 4) * (2.5)
+        = (672 s) + ((1.33 s) * (5) + (1.33 s) + (668 s) * 4) * (3) // round up to 3
+        = 8711.9 s = 2.42 hrs
+
+N = 10
+t_total = init_req_to_resp + req_to_resp * ((K - 1) / N)
+         = (672 s) + ((1.33 s) * (11) + (1.33 s) + (668 s) * 10) * (1)
+        = 7368.0 s = 2.05 hrs
+```
+
+We can see through a couple examples that the parallel connections do not have a positive impact on the time it takes to get all objects for the webpage. In fact, certain numbers (see `N = 4`) can actually take longer than just a serial connection. And the most parallelized we can do, with `N = 10` performs about the same as the serial connection. Because the files are so large and the bandwidth so limited, distributing bandwidth over parallel connections is *not* worthwhile in this case.
+
+(b) "Do you expect significant gains over the non-persistent case? Justify and explain your answer."
+
+We do *not* expect gains from persistent connections because the bulk of the time spent in the interaction is not on the TCP handshake. The relationship would change to something like:
+
+```
+init_req_to_resp = t_http_req + t_http_resp_one_connect
+req_to_resp = t_http_req + t_http_resp
+
+t_total = t_tcp_one_connect + init_req_to_resp 
+          + req_to_resp * (K - 1) * (1 / N)
+        = t_tcp_one_connect + init_req_to_resp 
+          + req_to_resp * ((K - 1) / N)
+```
+
+`t_tcp_one_connect` would be a straightforward constant 2.66 s.
+
+Even with this change in mind, consider `N = 10`:
+
+```
+t_total = t_tcp_one_connect + init_req_to_resp + req_to_resp * ((K - 1) / N)
+        = (2.66s) + (669.33 s) + ((1.33 s) + (668 s) * 10) * (1)
+        = 7353.32 s = 2.04 hrs
+```
+
+This has practically no difference on the time it takes due to the highly dominating object download time. So, a persistent TCP connection would not magically solve the issues here.
+
 ## Q3
 
 Find an email you've recently received and look at its full header (most email clients have an option like "show original" or "view source" for this). Take a screenshot of the Received: header lines. How many Received: lines are there? For each one, briefly explain what it tells you about the path the message took to reach you. 
@@ -279,9 +385,23 @@ Suppose your department has a local DNS server used by everyone in the departmen
 
 ### A4
 
-DNS uses UDP. So hypothetically, you could spy on unencrypted UDP traffic over the network to see DNS requests. Seeing if this is valid with WireShark.
+DNS uses UDP primarily to transfer DNS request/responses. Since UDP is unencrypted, raw text, you can spy on UDP traffic over the network to see DNS requests. You can actually accomplish this quite easily with a tool like WireShark to see traffic in and out. There could be some lagging of the tool, but it regularly updates with traffic on the network, so it should be very possible to set up a level of automation to see external site access. See below for a screenshot example of the requests in and out (done on the Rail Runner WiFi).
 
 #### notes
+
+hehe
+https://ellegourmet.ca/
+![alt text](images/image-9.png)
+
+crunchy roll
+
+![alt text](images/image-8.png)
+
+rover achievers:
+
+![alt text](images/image-7.png)
+
+![alt text](images/image-6.png)
 
 [udp used for dns protocol?](https://www.geeksforgeeks.org/computer-networks/why-does-dns-use-udp-and-not-tcp/)
 
