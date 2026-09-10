@@ -21,6 +21,57 @@ question: what are the server strategies?
 
 question: what are the considerations that fuel the selection?
 
+video has high bit rates compared to other things! massive traffiv issue
+
+### http streaming
+
+same video available at a url for all to http get.
+
+#### DASH
+
+**DASH** -- dynamic adaptive streaming over HTTP
+
++ encode the video in several diff versions
++ each version has different bit rate (therefore different quality level)
++ client dynamically requests chunks of vid at a time (few seconds in length)
++ when bandwidth low, select from low rate version, and same with high/high
++ all goes through GET requests
+
+the server has a **manifest file** which has a URL for each version along with bit rate
+
+client requests manifest FIRST, then, determining bit rate with each request, requests a specific version URL depending on most recent bandwidth calculation
+
+### CDNs
+
+having a single server for all requesting content traffic -- *problematic*
++ if client is far from data center -- if a single bottle neck on this long ass path, mega delay for client
+  + chances of this increases with number of links/hops to the data center
++ repeat traffic -- don't want to waste bandwidth on three people watching the same thing.
++ single fail point -- if data center goes down, EVERYTHING goes down.
+
+**solution: CDN** 
++ have multiple servers globally, each has copies of the videos, etc
++ redirect people to where it's probably going to serve them best
+
+EX: google's CDN distributes youtube vids
+
+**third party CDNs**: distribute on behalf of companies (akamai, limelight, level-3)
+
+#### server placement philosophies
+
+**enter deep** -- "enter deep" into the access networks of ISPs
++ deploy server clusters in access ISPs all over the world (in the 1000s)
+  + reduces the distance to most users and number of hops
+  + can be a mega pain to maintain
+
+**bring home** -- "bring the ISPs home" 
++ build larger server clusters at a smaller number of sites (in the 10s)
+  + typically place their clusters in IXPs actually
+  + can be slightly slighter for end users
+  + less maintenance cost.
+
+then store copies in the clusters
+
 ## 2.7 - socket programming, creating network applications
 
 REFRESH: socket is a software API for sending items out/receiving from network.

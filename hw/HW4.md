@@ -6,6 +6,11 @@ Besides network-related considerations such as delay, loss, and bandwidth perfor
 
 ### A1
 
+1. Avoiding a single point of failure, or decentralization
+2. Homogeneity -- ability to adapt to different user's network capabilities
+3. Distance to users?
+4. Repeat request traffic?
+
 ## Q2
 
 ![ref pic](images/image-10.png)
