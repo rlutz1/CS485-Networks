@@ -69,6 +69,14 @@ Markdown template (copy and paste, then fill in each row):
 
 ### A3
 
+| Organization | Category | Reach/Jurisdiction | What It Governs/Influences | Enforcement Power |
+|---|---|---|---|---|
+| W3C |  |  |  |  |
+| ICANN |  |  |  |  |
+| Educause |  |  |  |  |
+| RIPE NCC |  |  |  |  |
+
+
 ## Q4
 
 Suppose a phishing website is used to defraud victims located in the United States. The website is hosted on a domain that was registered through a registrar based outside the US.
