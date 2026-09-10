@@ -16,6 +16,14 @@ Besides network-related considerations such as delay, loss, and bandwidth perfor
 
 **(at least) 2 FACTORS that go into SERVER SELECTION STRATEGY**
 
+**cluster selection strategies**
+
+unsure if that's what the above means, but notes from book:
+
++ after knowing a clients IP, CDN needs to choose a good cluster based on that ip
+
+1. assign cluster that's geographically closest (IPs are mapped -> locations); reliant on the local dns location though, and that could be faulty
+2. can also try sending probes from CDN so that it can measure real time delay; not all local dns can respond to this though.
 
 question: what are the server strategies?
 
@@ -71,6 +79,37 @@ EX: google's CDN distributes youtube vids
   + less maintenance cost.
 
 then store copies in the clusters
++ typically only store upon request from client
++ and then clear out if it hasnt been requested for a while and storage is running down
+
+client asks for content via url, CDN must
+1. intercept the request -- typically achieved through DNS
+2. determine a suitable server cluster for that client at that time
+3. redirect the clients request to that cluster
+
+EX
+
+![p1](images/image-39.png)
+![p2](images/image-40.png)
+![pic of steps](images/image-41.png)
+
+#### netflix model
+
+![netflix](images/image-42.png)
++ netflix has own private cdn
+  + have server racks in IXPs and residential ISPS as well
++ push caching during slow hours
++ netflix software on amazon servers directly tells client to use a specific cdn server (no dns level redirect)
++ uses DASH
+
+#### youtube model
+
++ google also has private cdn
++ many clusters in IXP, ISP
++ pull caching
++ cluster selection strategy is based on lowest RTT between client and cluster
++ DNS redirects used
++ youtube doesnt use DASH, instead forces you to pick
 
 ## 2.7 - socket programming, creating network applications
 
