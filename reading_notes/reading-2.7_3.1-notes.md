@@ -175,3 +175,45 @@ transport-layer protocol provides for **logical communication** between applicat
 + meaning: from app perspective, feels like the processes are directly connected
 
 **transport layer protocols are implemented in the END SYSTEMS, not in network routers**
+
+sending side:
+
+transport layer breaks application layer data to send into transport layer **segments** (packets)
++ can break into smaller chunks if needed, each gets a header
+
+**subtle distinction:**
+
+-> transport layer provides logical communication between **PROCESSES** on diff hosts
+
+-> network layer provides logical communication between **HOSTS**
+
+![transport at high level](images/image-37.png)
+
+quick analogy
++ cousins in houses write each other on each coast
++ postal service delivers the mail
++ ann and bill collection from postal service and distribute to the cousins
+
+**postal service -> network layer protocol**
+
+**ann and bill -> transport layer protocol**
+
+![postal analogy](images/image-38.png)
+
+note that ann and bill (transport) have no knowledge or control over the postal service (network)
+
+*terminology note*: book will refer to TCP/UDP packets as **segments** and network protocol packets as **datagrams**
++ note though that UDP packets are also called *datagrams* in reality.
+
+**network protocol for the internet** -- **IP!!!!!**
++ is a *best effort* delivery service
+  + makes best effort to get packets delivered, but makes no guarantee -- **unreliable**
+
+**transport layer multiplexing/demultiplexing** transport layer protocols extend host-to-host network protocols to process-to-process
++ UDP only offers multiplexing and error checking
++ TCP offers further 
+  + **reliable data transfer** -- accomplishes with flow control, sequence numbers, ACK, and timers
+    + things arrive correctly and in order
+  + **congestion control** -- prevention of allowing one TCP connection from swamping links and routers between hosts with high traffic; regulate the rate at which sending sides send through packets
+    + note that udp has no restriction on this
+    + this is more of an internet wide service rather than an application-only perk
