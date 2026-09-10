@@ -4,12 +4,15 @@
 
 Besides network-related considerations such as delay, loss, and bandwidth performance, there are other important factors that go into designing a **CDN server selection strategy.** **Identify at least two of these factors and explain them** (at least 5 sentences total).
 
+*as in: what cdn server should you be pointed to for the content?*
+
 ### A1
 
-1. Avoiding a single point of failure, or decentralization
-2. Homogeneity -- ability to adapt to different user's network capabilities
-3. Distance to users?
-4. Repeat request traffic?
+1. Geographic proximity. 
+If my client machine is geographically closer to a CDN server, then there is an implication of less time for that content to get to me over the network. The physical layer provides a real limitation in terms of actual distance data needs to travel over to get to a requester. The longer a distance to travel, the longer time it will take to get to me. This does not necessarily account for number of links that need to be travelled; it is very possible that the shortest-path is not actually the best path if there is a bottleneck link on the way.
+
+2. Content on the server (items in cache).
+If the closest server to you does not have the content, it may be in the best interest to redirect to a nearby server with the content requested rather than fetching it from the server. This could be seen most in Netflix's "push caching" model. Instead of making a client request resulting in a pull of the content from the origin server (given it is not on a cache server), it is probable that the CDN redirects the request to a server that does have the content. It may not necessarily worthwhile in a "pull cache" to do this, but if the content is rarely requested and for some reason the origin server takes a longer response, I do not think it's impossible to think that this is an option when selecting servers.
 
 ## Q2
 
