@@ -6,6 +6,21 @@ but also: may need to reference 2.6 because there is a questions about CDN perfo
 
 ## 2.6 - CDN aux notes
 
+man, **80%** of traffic is streaming video these days, yeesh.
+
+*with this question in mind*
+
+```
+Besides network-related considerations such as delay, loss, and bandwidth performance, there are other important factors that go into designing a **CDN server selection strategy.** **Identify at least two of these factors and explain them** (at least 5 sentences total).
+```
+
+**(at least) 2 FACTORS that go into SERVER SELECTION STRATEGY**
+
+
+question: what are the server strategies?
+
+question: what are the considerations that fuel the selection?
+
 ## 2.7 - socket programming, creating network applications
 
 REFRESH: socket is a software API for sending items out/receiving from network.

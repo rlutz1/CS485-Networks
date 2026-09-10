@@ -2,7 +2,7 @@
 
 ## Q1
 
-Besides network-related considerations such as delay, loss, and bandwidth performance, there are other important factors that go into designing a CDN server selection strategy. Identify at least two of these factors and explain them (at least 5 sentences total).
+Besides network-related considerations such as delay, loss, and bandwidth performance, there are other important factors that go into designing a **CDN server selection strategy.** **Identify at least two of these factors and explain them** (at least 5 sentences total).
 
 ### A1
 
