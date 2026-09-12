@@ -71,10 +71,64 @@ Markdown template (copy and paste, then fill in each row):
 
 | Organization | Category | Reach/Jurisdiction | What It Governs/Influences | Enforcement Power |
 |---|---|---|---|---|
-| W3C |  |  |  |  |
-| ICANN |  |  |  |  |
-| Educause |  |  |  |  |
-| RIPE NCC |  |  |  |  |
+| W3C | Technical Standards | International | Creates open standards (not-proprietary, free to read and use) for application development on the web. Specifically, they create standards for data representation, an example being CSS usage and format standards. | No |
+| ICANN | Technical Standards/Policy | International* | Manages the distribution of domain names (working with registrar companies) and IP addresses (to avoid replication/conflicts). Further, they play an assisting role in ensuring the root DNS servers remain up to date. | Somewhat* |
+| Educause | Advocacy/Registrar | US-primarily* | Focus is in use of technology and data use in higher education through learning/communicative events, advocacy, and providing resources. Additionally, they are the sole registrar for the .edu TLD. | No* |
+| RIPE NCC | Registry (IP's) | Regional | Manages the distribution Internet number resources, primarily IP addresses and ASNs (Autonomous System Numbers) regionally in Europe, Russia, Asia, and Greenland. Also known as a Regional Internet Registry, one of 5 globally. | Yes |
+
++ *Note on ICANN's reach/jurisdication: It is a California based non-profit. However, it has a global reach in the work it does. So, a little tricky to sum up in one word, and US-only felt inappropriate.
++ *Note on ICANN's enforecment power: There is mention of ICANN having [contracts](https://www.icann.org/resources/pages/what-2012-02-25-en#cctld) with registries, so that is definitely a level of stronger enforcement. But it is slightly unclear past a contract that there is any further enforcement power from them.
++ *Note on Educause's reach/jurisdiction: They are a US headquartere company and appear primarily focused in that area, but [highly encourage](https://www.educause.edu/about/mission-and-organization/international-engagement) global members and engagement.
++ *Note on Educause's enforcement: No, other than obviously controlling the .edu domain registrations.
+
+#### A4 aux notes
+
+**w3c**
++ [develops guidlines for web](https://www.w3.org/standards/), focus on
+  + accessibility
+  + internationalization
+  + privacy
+  + security
++ [international, public interest, non profit](https://www.w3.org/about/)
++ all about open standards
++ [interesting](https://www.w3.org/TR/?filter-tr-name=CSS)
+  + can see all the standards they set, some about formatting and syntax, some about usage very specifically.
+
+**ICANN**
++ Internet Corporation for Assigned Names and Numbers\
++ helps to coordinate and support the unique IP addresses *globally*
++ ["California-based nonprofit, public-benefit organization accountable to a global community of stakeholders"](https://www.icann.org/resources/pages/about-icann)
++ ["coordination role of the Internet's naming system"](https://www.icann.org/resources/pages/what-2012-02-25-en) 
+  + ICANN draws up contracts with each registry*. It also runs an **accreditation system for registrars**. It is these contracts that provide a consistent and stable environment for the domain name system, and hence the Internet. 
+  + Again, ICANN does not run the system, but it does **help co-ordinate how IP addresses are supplied to avoid repetition or clashes**. ICANN is also the central repository for IP addresses, from which ranges are supplied to regional registries who in turn distribute them to network providers.
+  + The operators of the **root servers** remain largely autonomous, but at the same time work with one another and with **ICANN to make sure the system stays up-to-date with the Internet's advances and changes** 
++ administrative role in standardizing the human readable domain names offered by TLD registrars AND 
++ icann vs iana: basically icann sets up the broad governing policy and iana deals with the actual technicallity of carrying it out. (?, quick search on that bad boy)
+
+**educause**
++ [about](https://www.educause.edu/about)
+  + advancing the strategic use of technology and data to further the promise of higher education
++ nonprofict association
++ advocacy, events, etc. kind of weird and vague
++ [sole registrar for .edu](https://net.educause.edu/)
+
+**RIPE NCC**
++ https://www.ripe.net/
+  + As the **Regional Internet Registry for Europe, Middle East and Central Asia**, we serve over 20,000 members in 76 countries. We **register IP addresses and ASNs, and act as the secretariat to the RIPE community**.
+  + Réseaux IP Européens (RIPE, French for "European IP Networks")
++ not for profit
++ membership is really ISPs, telecommunication organisations, other companies that manage their own network infrastructure
++ **services**
+  + maintain a registry of all allocated Internet number resources in our service region
+    + **Our most prominent activity is to act as the Regional Internet Registry (RIR) providing global Internet resources and related services (IPv4, IPv6 and AS Number resources) to members in our service region**
+  + Part of our function is to act as a coordination centre for the RIPE community. As part of this, we perform a variety of activities. These include:
+    + Coordination of meetings and events
+    + Facilitation of Internet policy development
+    + Operation of one of the Internet's 13 root name servers
+    + Provision of numerous training courses
+  + work with other orgs on Internet governance
+![ripe reach](images/image-11.png)
+![iana](images/image-12.png)
 
 
 ## Q4
