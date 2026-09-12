@@ -28,6 +28,26 @@ Show your work, including any queuing delay you identify and at which device it 
 
 ### A2
 
+**Assumptions Made to Note**
++ All packets "appear" at t = 0. They do not appear in a realistic P1 arrives at t = 0, and maybe P2 arrives at t = 0.5.
+
+#### A2 aux notes
+
+queueing was a little tricky, refer to the weird pic later. time unit microseconds
+
+P1:
+    t = 0, 1, 2: q = 0
+
+P2: 
+    t = 0: q = 8
+    t = 1: q = 0
+    t = 2: q = 72
+
+P3:
+    t = 0: q = 16
+    t = 1: q = 0
+    t = 2: q = 144
+
 ## Q3
 
 This question will walk you through internet governance/policy organizations.
