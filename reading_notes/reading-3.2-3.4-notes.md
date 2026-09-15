@@ -141,3 +141,131 @@ reliable data transfer is a big area of research in networking. for obv reasons!
 
 
 ![reliable service model](images/image-50.png)
+
+**assumption forward** -- underlying channel will not alter the order of the packets sent
+
+the following is a generalization of computer network applications, not just transport layer applications
+
+focus on **unidirectional data transfer** -- sender to receiver. bidirectional stems from this, but easier to talk about uni.
+
+### rdt1.0 -- basic
+
+**nomenclature**
+
+![func exp](images/image-51.png)
+
+![protocol fsm's](images/image-52.png)
+~~+ i think udt above is a typo~~
++ this is just the most basic send/receive start
+
+### rdt2.0 -- bit errors/corruption
+
+bit errors introduced!
+
+**positive acknowledgements** -- "OK", the message was understand with no weirdness
+
+**negative acknowledgments** -- reask for the data because something is messed up ("please repeat that")
++ need a repeat send
++ retransmission based protocols: **ARQ** -- automatic repeat request protocols
+  + 3 capabilities required in ARQ protocols
+    1. **error detection** (bit errors)
+    2. **receiver feedback** (recipient ACK a request (pos acknowledgment), NAK is a neg acknowledgment)
+       + these only need to be 1 bit long in principle (0/1)
+    3. **retransmission** (packet receied in error will be retransmitted by sender.) 
+
+![rdt2.0 fsm's](images/image-53.png)
++ note above that the sender is a **stop-and-wait** protocol
+  + cannot send anything else through until ACK received
++ note also that ACK/NAK can be corrupted
+  + would need checksum on these as well
+  + introduces some complexity that *can* be solved by simply resending a packet when getting a corrupted ACK, NAK
+    + this is when **sequence numbers** on packets comes up
+      + then, receiver will know if they got a duplicate packet because they recognize the sequence number in case of resend with a corrupted ack/nak
+
+note we are just going to use 0, 1 as sequence nums for toy ex
+
+![rdt2.1 seq nums sender](images/image-54.png)
+
+![rdt2.1 seq nums receiver](images/image-55.png)
+
++ one further change: get rid of NAK and instead isACK takes 1/0. the idea is that the receiving machine can send back an ACK for the LAST correctly received packet, thereby the receiver getting 2 ACK's back for that last packet received correctly.
+  + sender then knows the last packet sent was not received correctly, making the state NAK free.
+
+![nak free 1](images/image-56.png)
+
+![nak free 2](images/image-57.png)
+
+### rdt3.0 -- packets getting lost
+
+how to detect? how to address?
+
+**detection** -- pick a time interval (**countdown timer**) in which, if the first ACK has not been received, resend the packet. 
++ covers if data lost or ACK lost
++ sequence numbers handle duplicate data concerns
++ timer interrupts the waiting sender to retransmit
+
+![sender with timeout](images/image-58.png)
+
+**3.0 is a working reliable data transfer protocol!**
++ performance probably not good though
+
+### pipelined reliable data transfer protocols
+
+*stop and wait* is mega slow and consuming
+
+pipeline instead:
+
+![pipelining](images/image-59.png)
+
+**utilization** -- fraction of ttime the sender is actually busy sending bits with respect to the time to receive an acknowledgement.
++ ex:
+
+![util](images/image-60.png)
++ sender was busy 0.027% of the time it had before the ACK for the initial packet received
+
+better util:
+
+![pipelined sending](images/image-61.png)
+
+idea is we don't need to wait to send the next packet! we're wasting a ton of time.
++ we're UNDER UTILIZING the *network capability*!
+  
+to pipeline properly we need to
++ increase range of sequence numbers (can't be 0, 1)
+  + each unique packet needs a unique seq num
++ sender/receiver may have to buffer >1 packet
++ requirement of above two changes depends on how protocol responds to lost, corrupted, delayed packets.
+  + two approaches: **Go-Back-N (GBN)** and **selective repeat**
+
+#### Go-Back-N (GBN)
+
++ pipelining allowed
++ constraint: cannot have more than N (set) nuber of unacknowledged packets in the pipeline
+
+graphic of the set up, from senders perspective
++ base is oldest unack'd package
+
+![gbn, sender](images/image-62.png)
++ **sliding window protocol** -- window slides forward as ACKs come in
++ window cannot slide until BASE has been ACK'd
+  + remember that we assume data is in order, so we're assuming that the ACK for the oldest packet should be gotten first?
+    + but what if the base ack lost and we get another first?
+    + *probable answer*: receipt of an ack is a **cumulative acknowledgement**, saying i've received **up to n sequence number**
+  + **timeout**: "If a timeout occurs, the sender resends all packets that have been previously sent but that have not yet been acknowledged."
+    + a single timer used, usually set by the oldest unack'd packet
++ receiver in ANY error scenario discards the packet and resends an ACK with the last recently correctly received sequence number
+  + note that packets up to n have been received and delivered at that point, delivered to upper layer 1 at a time
+  + receiver also discards *out of order packets*
+    + if it receives n + 1, but it's expecting sequence n, it will discard n + 1 and send ack with n
+      + no buffer of out of order packets, no need to because sender will def resend everything if something gets lost
+
+out of ordering timeline
+
+![timing of out of order, sliding window in action](images/image-63.png)
++ 345 get sent, but out of order, and ACK1 heeps getting sent, discarding them
++ timeout resends ALL unACK'd
+
+GBN seems to be all about the timer!
++ i don't think sender does anything when it receives an ACK that's not expected, it just waits out on a timer and resends everything
+
+#### Selective Repeat
