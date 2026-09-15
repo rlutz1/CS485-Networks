@@ -133,4 +133,11 @@ note that there is no recovery from the error, just a knowledge of it
 
 ## priniciples of reliable data transfer (intro to TCP)
 
+reliable data transfer is a big area of research in networking. for obv reasons!
 
+**reliable data transfer** is a service abstraction provided to upper-layer entities in the form of a reliable channel; no transferred data through this channel will be corrupted, lost, and all delivered in order sent.
++ this is the responsibility of a **reliable data transfer protocol** to implement
+  + typically difficult because layer below is unreliable (IP is not reliable, but TCP is)
+
+
+![reliable service model](images/image-50.png)
