@@ -113,6 +113,10 @@
 			+ more detail in further section, but the internet uses **routing protocols** to automatically set forwarding tables
 				+ ie, a protocol could conduct a shortest path search to destination listed in packet header
 
+[egg analogy for store and forward and what that means for delays](https://cs.stackexchange.com/questions/13501/transmission-store-and-forward-delay)
++ when calculating, it means that intermediate routers have a transmission delay that is essentially akin to them "gathering the eggs" that were sent to them. 
+  + in this case, their transmission delay IS the store and forward delay to consider at the node.
+
 ### circuit-switching
 + in these networks, **resources for communication between end systems are reserved for the lifetime of the intercommunication between them**
 	+ packet-switch networks do not do this

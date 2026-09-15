@@ -30,6 +30,12 @@ Show your work, including any queuing delay you identify and at which device it 
 
 **Assumptions Made to Note**
 + All packets "appear" at t = 0. They do not appear in a realistic P1 arrives at t = 0, and maybe P2 arrives at t = 0.5.
++ Systems and packet switches start transmitting a new packet the minute they are finished transmitting the current--all packets that arrive wait in queue until their transmission time is ready.
++ Packets are labelled P1, P2, P3 and sent in that order (P1 first, P3 last).
+
+Below is the handwork done in completing the problem. The final drawing is how the queuing times were determined. It was most helpful to draw out a timeline here with time stamps to show the flow. So, please refer to that for work on the queue times.
+
+Final answer: Total time for all 3 packets A -> B: **262 microseconds**
 
 #### A2 aux notes
 
@@ -92,7 +98,7 @@ Markdown template (copy and paste, then fill in each row):
 | Organization | Category | Reach/Jurisdiction | What It Governs/Influences | Enforcement Power |
 |---|---|---|---|---|
 | W3C | Technical Standards | International | Creates open standards (not-proprietary, free to read and use) for application development on the web. Specifically, they create standards for data representation, an example being CSS usage and format standards. | No |
-| ICANN | Technical Standards/Policy | International* | Manages the distribution of domain names (working with registrar companies) and IP addresses (to avoid replication/conflicts). Further, they play an assisting role in ensuring the root DNS servers remain up to date. | Somewhat* |
+| ICANN | Technical Standards/Policy | International* | Manages the  policy creation and suggested standards of domain names (working with registrar companies) and IP addresses (to avoid replication/conflicts). Further, they play an assisting role in ensuring the root DNS servers remain up to date. | Somewhat* |
 | Educause | Advocacy/Registrar | US-primarily* | Focus is in use of technology and data use in higher education through learning/communicative events, advocacy, and providing resources. Additionally, they are the sole registrar for the .edu TLD. | No* |
 | RIPE NCC | Registry (IP's) | Regional | Manages the distribution Internet number resources, primarily IP addresses and ASNs (Autonomous System Numbers) regionally in Europe, Russia, Asia, and Greenland. Also known as a Regional Internet Registry, one of 5 globally. | Yes |
 
@@ -101,7 +107,7 @@ Markdown template (copy and paste, then fill in each row):
 + *Note on Educause's reach/jurisdiction: They are a US headquartere company and appear primarily focused in that area, but [highly encourage](https://www.educause.edu/about/mission-and-organization/international-engagement) global members and engagement.
 + *Note on Educause's enforcement: No, other than obviously controlling the .edu domain registrations.
 
-#### A4 aux notes
+#### A3 aux notes
 
 **w3c**
 + [develops guidlines for web](https://www.w3.org/standards/), focus on
@@ -163,6 +169,14 @@ Using the four organizations you selected above, answer the following:
 
 
 ### A4
+
+1. Unfortunately, it feels that none of my 4 could actually take direct and meangingful action in a phishing situation; or, that is to say that there is a *but* in each of the yes's given. The primary organization that can take action tangibly and meaningfully--RIPE NCC--is mostly actionable in how they distribute system addresses outside of the US, but not in anyway [governing potential abuse on those systems](https://www.ripe.net/about-us/support/contact/reporting-procedure/). Their focus is all about keeping addresses structured, clean, and enabling an organized internet address system. The actual [registrar or even ISP](https://www.ripe.net/about-us/support/abuse/) of the domain would probably have a higher concern in a phishing issue.
+
+As an honorable mention, ICANN does have contracts with registrars, and therefore some sway with the companies "handing out" the domains, and they do provide some level of monitoring and tooling for detecting "DNS abuse" generally. In this, when they have a contract with a registrar, [they do have an enforceable clause to push the registrar to take action of a registered domain has sufficient evidence to be considered malicious](https://www.icann.org/dnsabuse). However, they profess to not be a "policing" authority, and cannot actionably do much themselves in the situation (other than contractually forcing a registrar to do something, assuming they have a contract with the registrar in question). Additionally, they are global in nature, but based in the US, so there could be limited contracts outside of the US for them to push on. 
+
+2. Of the others, W3C is purely focused on setting web standards of data and communication, but no interest in policing content or security. Further it provides open standards and encourages usage, but has not much tangible enforcement power. So, despite being focused on the standardization of the Internet data formatting and usage, this would not be the place to report phishing to since it is outside of their concern and they have no real enforcement power.
+ 
+Educause would likely want to take swift action on a .edu domain if it was phishing, but if its not, this is clearly outside of their scope, which is focused on advocacy and education. So, in that specific .edu case, they would likely want to suspend the domain. But that is a narrow case and does not apply generally to the idea of an "outside the US" phishing domain issue.
 
 ## Q5
 
