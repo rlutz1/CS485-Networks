@@ -269,3 +269,20 @@ GBN seems to be all about the timer!
 + i don't think sender does anything when it receives an ACK that's not expected, it just waits out on a timer and resends everything
 
 #### Selective Repeat
+
+GBN has a lot of unnecessary retransmissions potentially when there is only one problematic one.
++ **selectrive repeat is trying to address that**
+  + only retransmit things that were perceived as sent in error
+
+![selective repeat](images/image-64.png)
++ note its two different window sizes for sender and receiver.
++ each packet now has a timer, not just the oldest
+  + a single hardware timer can mimic multiple logic ones
++ ACK received is now of use
+  + window moved forward to the unack'd packet with the smallest sequence number
++ receiver now buffers received things that are beyond the sequence number of what it expects
+
+![sr flow](images/image-65.png)
+
+
+![important pieces of transport layer](images/image-66.png)
