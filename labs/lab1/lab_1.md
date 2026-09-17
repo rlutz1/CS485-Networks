@@ -118,6 +118,8 @@ address.sin_port = [PORT GIVEN ON COMMAND LINE], // legit the port number
 address.sin_addr = inet_addr("127.0.0.1") // server addr, local host always
 // address.sin_zero -> This field is reserved. Set this field to hexadecimal zeros.
 
+// TODO: SO_REUSEADDR note
+
 // bind the address, port to the socket
 // socket -> the socket descriptor
 // address -> the sock addr made above with all connection info
