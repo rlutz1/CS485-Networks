@@ -161,13 +161,27 @@ while (true) {
     (struct sockaddr *) &address, 
     sizeof(address)
     );
+
+    // TODO FROM HERE
+    // check to see if space in client list (mutex)
+    // if so:
+    //   add to list, spin up a client thread to handle their connection
+    // else:
+    //   reject the connection, avoiding the overhead of a client thread
+
+    // client thread should hold all the handling of broadcasting changes, dealing with input of client, and closing the connection once :Exit typed.
+
+    // TODO next: just implement the connection first and ensure the socket open/close is working correctly before getting in to the threads
+
 }
 
 
 
 ```
 
-```
+python BSD flow
+
+```py
 serverSocket.listen(1) # wait for a knock on the door; max number of queued connections: 1
 print('The server is ready to receive')
 while True:
