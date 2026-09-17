@@ -11,7 +11,7 @@ For debugging you should instead use fprintf(stderr, ...), which the autograder 
 need a thread per client
 + concurrently using pthreads: spawn one thread per connected client to handle that client’s messages.
 
-remember: threads share stack but NOT heap
+remember: threads share heap but NOT stack
 
 + recc: implement exit first
 
