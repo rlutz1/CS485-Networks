@@ -145,3 +145,9 @@ int bind_int = bind(
 [sock addr nonsense](https://www.reddit.com/r/cpp_questions/comments/1mzsne8/difference_between_sockaddr_in_and_sockaddr/)
 
 ![sockaddr](images/image.png)
+
+hmmm, [memset vs malloc](https://cplusplus.com/forum/general/69810/)
++ memset sets values in the already allocated block
++ malloc does the allocation
+  + so can you not use memset until malloc already used?
+![memset and malloc work together.](images/image-1.png)
