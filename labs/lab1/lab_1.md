@@ -106,21 +106,12 @@ if (socket == -1) { // error has occurred
   exit(2);
 } // end if
 
-
-
-// struct sockaddr {
-//    u_short sa_family;
-//    char    sa_data[14];
-// };
-
-// struct sockaddr_in {
-//   short          sin_family;
-//   u_short        sin_port;
-//   struct in_addr sin_addr;
-//   char           sin_zero[8];
-// };
-
 // use a sockaddr in for giving to bind
+// this is the GENERAL LISTENING SOCKET!
+// not the connecting socket for a specific client.
+// TODO may need malloc here.
+// https://man7.org/linux/man-pages/man3/sockaddr_in.3type.html
+// https://man7.org/linux/man-pages/man3/inet_addr.3p.html
 struct sockaddr_in address;
 address.sin_family = AF_INET; // same IPv4 family name
 address.sin_port = [PORT GIVEN ON COMMAND LINE], // legit the port number
@@ -131,6 +122,7 @@ address.sin_addr = inet_addr("127.0.0.1") // server addr, local host always
 // socket -> the socket descriptor
 // address -> the sock addr made above with all connection info
 // size of the address -> need to pass
+// https://man7.org/linux/man-pages/man2/bind.2.html
 int bind_int = bind(
   socket, 
   (struct sockaddr *) &address, 
@@ -138,8 +130,56 @@ int bind_int = bind(
   );
 
 // then listen
-// then accept once knock on door -- likely threading here.
+// mark socket as passive -- socket will be able to accept
+// incoming connection requests using accept
+// https://man7.org/linux/man-pages/man2/listen.2.html
+// socket -> our socket file descriptor (sockfd)
+// backlog -> how many pending connections can grow in a queue
+//            for this socket.
+//            for right now, making 1? but play
+int listen_success = listen(socket, 1);
+if (listen_success == -1) { // error occurred
+  fprintf(stderr, "Listening setup failed!"); 
+  exit(2);
+} // end if
 
+// the above 3 steps must happen before accept can be used.
+
+while (true) {
+  // then accept once knock on door -- likely threading here.
+  // return file descriptor for a NEW client socket created
+  // on connection accept.
+  // original socket is unaffected by this call. 
+  // will pull the first from the queue for connections.
+  // if socket is not marked "non-blocking", this call blocks
+  // the caller, hence the while true is a "quiet wait", not busy
+  // https://man7.org/linux/man-pages/man2/accept.2.html
+  client_socket = accept(
+    socket, 
+    // not entirely sure this is correct
+    // can be NULL--why?
+    (struct sockaddr *) &address, 
+    sizeof(address)
+    );
+}
+
+
+
+```
+
+```
+serverSocket.listen(1) # wait for a knock on the door; max number of queued connections: 1
+print('The server is ready to receive')
+while True:
+  # when client knocks, accept makes the new
+  # pipe socket to client
+  connectionSocket, addr = serverSocket.accept() 
+
+  # now through the connection socket, server can receive from that particular client.
+  sentence = connectionSocket.recv(1024).decode()
+  capitalizedSentence = sentence.upper()
+  connectionSocket.send(capitalizedSentence.encode())
+  connectionSocket.close() # non persistent?
 ```
 
 [sock addr nonsense](https://www.reddit.com/r/cpp_questions/comments/1mzsne8/difference_between_sockaddr_in_and_sockaddr/)

@@ -248,7 +248,7 @@ print('From Server: ', modifiedSentence.decode())
 clientSocket.close()
 ```
 
-#### TCPSeerver.py
+#### TCPServer.py
 
 ```py
 from socket import *
