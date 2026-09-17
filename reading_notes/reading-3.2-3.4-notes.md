@@ -87,7 +87,7 @@ DNS uses UDP (haha)
 + **small packet header overhead**
   + TCP header -> 20 bytes, UDP header -> 8 bytes
 
-sometimes in modern eraHTTP actually runs over UDP and there is application level error checking.
+sometimes in modern era HTTP actually runs over UDP and there is application level error checking.
 + UDP preferred for network management since typically those applications are used when network is in stressed state
 
 **NOTE**: sometimes udp blocked for security
@@ -107,6 +107,14 @@ header has only 4 fields -- 2 bytes each, 8 bytes total
 and then the data field is the message passed by application layer
 
 ![udp segment](images/image-47.png)
+
+just as a note: TCP header is like:
+
+![tcp header](images/image-67.png)
++ note that source address and port actually comes from the IP header, not the trans layer headers. this information is typically snagged by operating system for use in the trans layer
++ 
+![pseudoheader](images/image-68.png)
++ [source](https://www.geeksforgeeks.org/computer-networks/calculation-of-tcp-checksum/)
 
 #### checksum
 
@@ -244,6 +252,8 @@ to pipeline properly we need to
 
 graphic of the set up, from senders perspective
 + base is oldest unack'd package
+
+[demo](https://media.pearsoncmg.com/ph/esm/ecs_kurose_compnetwork_8/cw/content/interactiveanimations/go-back-n-protocol/index.html)
 
 ![gbn, sender](images/image-62.png)
 + **sliding window protocol** -- window slides forward as ACKs come in
