@@ -98,10 +98,10 @@ so to start the connection:
 // create a socket
 // AF_INET -> IPv4
 // SOCK_STREAM -> a TCP connection
-// PF_INET -> IPv4 protocols
-int socket = socket(AF_INET, SOCK_STREAM, PF_INET);
+// 0 -> auto choose protocol -- sock_stream == tcp
+int sock = socket(AF_INET, SOCK_STREAM, 0);
 
-if (socket == -1) { // error has occurred
+if (sock == -1) { // error has occurred
   fprintf(stderr, "Socket creation failed!");
   exit(2);
 } // end if
@@ -126,7 +126,7 @@ address.sin_addr = inet_addr("127.0.0.1") // server addr, local host always
 // size of the address -> need to pass
 // https://man7.org/linux/man-pages/man2/bind.2.html
 int bind_int = bind(
-  socket, 
+  sock, 
   (struct sockaddr *) &address, 
   sizeof(address)
   );
@@ -139,7 +139,7 @@ int bind_int = bind(
 // backlog -> how many pending connections can grow in a queue
 //            for this socket.
 //            for right now, making 1? but play
-int listen_success = listen(socket, 1);
+int listen_success = listen(sock, 1);
 if (listen_success == -1) { // error occurred
   fprintf(stderr, "Listening setup failed!"); 
   exit(2);
@@ -157,17 +157,54 @@ while (true) {
   // the caller, hence the while true is a "quiet wait", not busy
   // https://man7.org/linux/man-pages/man2/accept.2.html
   client_socket = accept(
-    socket, 
+    sock, 
     // not entirely sure this is correct
     // can be NULL--why?
     (struct sockaddr *) &address, 
     sizeof(address)
     );
 
+    int len_msg = 1;
+    char *buffer;
+    char *msg;
+
+    while (len_msg > 0) {
+      // for testing (this is what a thread should do instead): 
+      buffer = (char *) malloc(1025); // make a buffer for 1024 bytes (?) with one for null char at end of str?
+      len_msg = recv(client_socket, *buf, 1024, 0); // quiet wait to receive a character string
+
+      if (len_msg == 0) {
+        break;
+      }
+
+      fprintf(stdout, buf); // print raw buff
+
+      msg = (char *) malloc(1025);
+      strcpy(msg, "Heard from server!");
+      send(client_socket, msg, strlen(msg), 0);
+      free(msg); // ENSURE THIS IS IN THE LINUX MACHINE COPY! OOPS!
+      // MOVE BOTH MALLOC! that would solve prob here. 
+
+    }
+    
+    free(buffer); free(msg); // clean up
+
+    if (len_msg == 0) {
+      // connecting client has shut down the connection on their end, end it.
+      // TODO: clearly this needs to print something specific
+      printf("Client exited.");
+      client_socket.close(); // close the connection
+    } else {
+      fprintf(stderr, "Error on recv!"); 
+      exit(2);
+    }
+
+    
+
     // TODO FROM HERE
     // check to see if space in client list (mutex)
     // if so:
-    //   add to list, spin up a client thread to handle their connection
+    //   add to list, spin up a thread to handle their connection
     // else:
     //   reject the connection, avoiding the overhead of a client thread
 
@@ -176,10 +213,93 @@ while (true) {
     // TODO next: just implement the connection first and ensure the socket open/close is working correctly before getting in to the threads
 
 }
+```
+
+and the client starts with
+
+`./client --host 127.0.0.1 --port 8080 --username alice --password pw123`
+
+TODO: what's the point of user name, password?
+
+```C
+// client needs to start a connection, a lot is the same vibe,
+// except for the connect
+
+// create a socket
+// AF_INET -> IPv4
+// SOCK_STREAM -> a TCP connection
+// 0 -> auto choose protocol -- sock_stream == tcp
+int sock = socket(AF_INET, SOCK_STREAM, 0);
+
+if (sock == -1) { // error has occurred
+  fprintf(stderr, "Socket creation failed!");
+  exit(2);
+} // end if
 
 
+struct sockaddr_in address; // this is the "server address"
+address.sin_family = AF_INET; // same IPv4 family name
+address.sin_port = [PORT GIVEN ON COMMAND LINE], // legit the port number
+address.sin_addr = inet_addr([HOST GIVEN ON COMMAND LINE]) // server addr, local host always
+// address.sin_zero -> This field is reserved. Set this field to hexadecimal zeros.
+
+// bind the address, port to the socket
+// socket -> the socket descriptor
+// address -> the sock addr made above with all connection info
+// size of the address -> need to pass
+// https://man7.org/linux/man-pages/man2/bind.2.html
+int bind_int = bind(
+  sock, 
+  (struct sockaddr *) &address, 
+  sizeof(address)
+  );
+
+// use a sockaddr in for giving to bind
+// this is the GENERAL LISTENING SOCKET!
+// not the connecting socket for a specific client.
+// TODO may need malloc here.
+// https://man7.org/linux/man-pages/man3/sockaddr_in.3type.html
+// https://man7.org/linux/man-pages/man3/inet_addr.3p.html
+struct sockaddr_in server_address; // this is the "server address"
+server_address.sin_family = AF_INET; // same IPv4 family name
+server_address.sin_port = [PORT GIVEN ON COMMAND LINE], // legit the port number
+server_address.sin_addr = inet_addr([HOST GIVEN ON COMMAND LINE]) // server addr, local host always
+// address.sin_zero -> This field is reserved. Set this field to hexadecimal zeros.
+
+// something like this: connect to the server socket (or attempt connection)
+// making a "tunnel" between my client socket and the server socket for send/receive.
+int connect_status = connect(sock, (struct sockaddr *) &server_address, sizeof(server_address))
+
+// TODO: need to actually listen for command line stuff, but below is a test of the connection.
+
+buffer = (char *) malloc(1025); // make a buffer for 1024 bytes (?) with one for null char at end of str?
+msg = (char *) malloc(1025);
+
+strcpy(msg, "Hey from client 1!");
+send(client_socket, msg, strlen(msg), 0);
+free(msg); // ENSURE THIS IS IN THE LINUX MACHINE COPY! OOPS!
+
+len_msg = recv(client_socket, *buf, 1024, 0); // quiet wait to receive a character string
+fprintf(stdout, buf); // print raw buff
+
+strcpy(msg, "Hey from client 2!");
+send(client_socket, msg, strlen(msg), 0);
+free(msg); // ENSURE THIS IS IN THE LINUX MACHINE COPY! OOPS!
+
+len_msg = recv(client_socket, *buf, 1024, 0); // quiet wait to receive a character string
+fprintf(stdout, buf); // print raw buff
+
+strcpy(msg, "Hey from client 3!");
+send(client_socket, msg, strlen(msg), 0);
+free(msg); // ENSURE THIS IS IN THE LINUX MACHINE COPY! OOPS!
+
+len_msg = recv(client_socket, *buf, 1024, 0); // quiet wait to receive a character string
+fprintf(stdout, buf); // print raw buff
+
+close(sock)
 
 ```
+
 
 python BSD flow
 
@@ -207,3 +327,10 @@ hmmm, [memset vs malloc](https://cplusplus.com/forum/general/69810/)
 + malloc does the allocation
   + so can you not use memset until malloc already used?
 ![memset and malloc work together.](images/image-1.png)
+
+
+### debugging phase 1
+
+hypothetically both sockets are set up, but get a recv error on the server side when running the client.
+
+**note that the programs need to be run on the same machine because we're just using localhost.**

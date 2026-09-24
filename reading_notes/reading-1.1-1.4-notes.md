@@ -28,7 +28,7 @@
 + protocols defined handshakes and standards
 	+ "*A protocol defines the format and the order of messages exchanged between two or more communicating entities, as well as the actions taken on the transmission and/or receipt of a message or other event.*"
 + different protocols == different communication tasks
-****
+
 ## Questions
 + Link-layer switches are typically used in access networks, while routers are typically used in the network core. -> what's network core? *i think they just use it to main the internal network structure, not devices that connect--as opposed to network edge*
 
@@ -61,6 +61,7 @@
 + **Ethernet and wifi**
 + local area network == **LAN**
 + ethernet is copper wire connection to 
++ 
 #### phones
 + use the same infrastructure as phone network to send/receive packets wirelessly; needs a base station offered by the cell network provider
 + 3g, 4g, 5g -- all being spent on for more SPEED
@@ -72,7 +73,7 @@
 + **guided media** -> waves representing low/high bits go through solid medium
 + **unguided media** -> waves propagate through the atmosphere (radio signals, satellites...)
 + just neat: optical fiber pulses light? not voltage to rep bits
-+ wireless signals -> pretty much radio waves (short and long form.
++ wireless signals -> pretty much radio waves (short and long form.)
 + huge delay on signals from satellites; low earth orbits (LEO) may be used someday more seriously
 	+ typically microwave signals.
 
