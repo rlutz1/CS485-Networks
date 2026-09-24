@@ -1,1 +1,6 @@
 # Reading 3.5, Saltzer, Reed & Clark (1984), "End-to-End Arguments in System Design" Notes
+
+## 3.5: 
+
+## Paper
+
