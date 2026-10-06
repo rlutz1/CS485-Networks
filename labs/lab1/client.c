@@ -53,8 +53,8 @@
 
 // consistent buffer sizing. arbitrary.
 #define HOST_IP "127.0.0.1"
-#define SERVER_BUFFER_SIZE 201
-#define CLIENT_BUFFER_SIZE 201
+#define SERVER_BUFFER_SIZE 301
+#define CLIENT_BUFFER_SIZE 301
 
 /**
  * =============================================================
@@ -83,78 +83,7 @@ void *server_thread_handler(void * arg);
 
 /**
  * =============================================================
- * GLOBALS
- * =============================================================
- */
-
-
-/**
- * =============================================================
- * UTILITY FUNCTIONS
- * =============================================================
- */
-
-/**
- * this is to be used to wrap recv in order to use it for tcp STREAMS.
- */
-int stream_recv(int sockfd, char *buffer, int buffer_size, int flags) {
-    int bytes_received = 0; // bytes received so far
-    int total_received = 0; // acts as offset into buffer.
-
-    while (
-        (bytes_received = recv(sockfd, (void *)buffer, buffer_size, 0)) > 0
-    ) {
-        total_received += bytes_received;
-       
-        // total received - 1 should be null if its the end of the message sent.
-        if (!buffer[total_received - 1]) {
-            break; // break out, process the message
-        } // end if
-    } // end loop
-    return bytes_received; // return this value as normal recv would
-} // end function
-
-/**
- * =============================================================
- * THREAD HANDLERS
- * =============================================================
- */ 
-
-/**
- * handler for the thread that listens for server communication.
- * this is a DUMB thread. it simply prints what is received.
- * it is up to client thread server side to format things correctly
- * for autograder.
- */
-void *server_thread_handler(void * arg) {
-    struct ServerThreadArg *data = (struct ServerThreadArg *)arg;
-    int ret;
-
-    while(1) {
-        // listen to sever
-        ret = stream_recv(data->receiving_socket, data->buffer, data->buffer_size, 0); 
-        if (ret <= 0) { // something wrong here
-            break;
-        } // connection closed or something went on
-
-        // print to stdout -- note i'm the only thread doing this
-        // so there is no locking protection here!
-        fprintf(stdout, "%s", data->buffer); fflush(stdout);
-        
-        // clear the buffer
-        memset(data->buffer, 0, data->buffer_size);
-
-    } // end loop
-
-    // don't do anything on clean up, main client thread will handle all resource frees.
-    fprintf(stderr, "STDERR: Server thread shutting down...\n");
-    return NULL;
-
-} // end function
-
-/**
- * =============================================================
- * MAIN SERVER PROCESS
+ * MAIN CLIENT PROCESS
  * =============================================================
  */
 
@@ -173,11 +102,11 @@ int main(int argc, char *argv[])
 
     static struct option long_options[] = {
 	          {HOST_CMD,     required_argument, 0,  0 },
-              {PORT_CMD,     required_argument, 0,  0 },
-	    	  {USER_CMD,     required_argument, 0,  0 },
-              {PASS_CMD,     required_argument, 0,  0 },
-              {           0,                 0, 0,  0 }
-  };
+            {PORT_CMD,     required_argument, 0,  0 },
+	    	    {USER_CMD,     required_argument, 0,  0 },
+            {PASS_CMD,     required_argument, 0,  0 },
+            {           0,                 0, 0,  0 }
+    };
 
     while (c >= 0) { // control mechanism for processing the options
       c = getopt_long(argc, argv, "", long_options, &opt_index); // get the next option index
@@ -206,10 +135,9 @@ int main(int argc, char *argv[])
       exit(EXIT_FAILURE);
     } // end if
 
+    // to avoid the socket stuck in time wait.
     const int enable = 1;
     setsockopt(connection_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
-        //error("setsockopt(SO_REUSEADDR) failed");
-
 
     struct sockaddr_in address; // this is the "client address"
     address.sin_family = AF_INET; // same IPv4 family name
@@ -221,14 +149,14 @@ int main(int argc, char *argv[])
     // address -> the sock addr made above with all connection info
     // size of the address -> need to pass
     // https://man7.org/linux/man-pages/man2/bind.2.html
-    int bind_int = bind(
+    ret = bind(
         connection_socket, 
         (struct sockaddr *) &address, 
         sizeof(address)
     );
 
     // error checking
-    if (bind_int == -1) {
+    if (ret == -1) {
         fprintf(stderr, "STDERR: Socket binding failed!\n");
         exit(EXIT_FAILURE);
     } // end if
@@ -246,10 +174,10 @@ int main(int argc, char *argv[])
   
     // something like this: connect to the server socket (or attempt connection)
     // making a "tunnel" between my client socket and the server socket for send/receive.
-    int connect_status = connect(connection_socket, (struct sockaddr *) &server_address, sizeof(server_address));
+    ret = connect(connection_socket, (struct sockaddr *) &server_address, sizeof(server_address));
 
     // error checking
-    if (connect_status == -1) {
+    if (ret == -1) {
         fprintf(stderr, "STDERR: Socket connecting failed!\n");
         exit(EXIT_FAILURE);
     } // end if
@@ -299,8 +227,7 @@ int main(int argc, char *argv[])
 
     // see if password was correct
     if (!strcmp(from_server, INCORRECT_PASS_STR)) {
-        // doesnt specify in instructions to 
-        // print this to stdout or not, but assuming to for now.
+        // if not correct, print incorrect and shut down.
         fprintf(stdout, INCORRECT_PASS_STR); fflush(stdout);
         close(connection_socket);
         free(from_server);
@@ -310,7 +237,7 @@ int main(int argc, char *argv[])
     // clear buffer
     memset(from_server, 0, SERVER_BUFFER_SIZE); 
 
-    // print the required string 
+    // print the required string that i am connected
     fprintf(stdout, CONNECTION_STR, SERVER_HOST, SERVER_PORT);
 
     // now, go ahead and send the user name, we must have given correct password
@@ -329,7 +256,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     } // connection closed or something went on 
 
-    fprintf(stderr, "STDERR: %s", from_server); fflush(stdout); // i joined the chatroom message
+    fprintf(stderr, "STDERR: %s", from_server); fflush(stdout); // i joined the chatroom message, received but don't print.
     
     memset(from_server, 0, SERVER_BUFFER_SIZE); // clear buffer    
 
@@ -341,6 +268,8 @@ int main(int argc, char *argv[])
     struct ServerThreadArg *arg = (struct ServerThreadArg *)malloc(sizeof(struct ServerThreadArg));
     if (!arg) {
         fprintf(stderr, "STDERR: Malloc null return for arg, exiting...\n");
+        close(connection_socket);
+        free(from_server);
         exit(EXIT_FAILURE);
     } // end if
 
@@ -354,11 +283,16 @@ int main(int argc, char *argv[])
     ret = pthread_create(&thread, NULL, server_thread_handler, arg);
     if (ret) {
         fprintf(stderr, "STDERR: pthread_create error! Exiting...");
+        close(connection_socket);
+        free(from_server); free(arg);
         exit(EXIT_FAILURE);
     } // end if
+
     ret = pthread_detach(thread); // instead of blocking with join, let os auto clean on thread finish.
     if (ret) {
         fprintf(stderr, "STDERR: pthread_detach error! Exiting...");
+        close(connection_socket);
+        free(from_server); free(arg);
         exit(EXIT_FAILURE);
     } // end if
 
@@ -366,45 +300,40 @@ int main(int argc, char *argv[])
     char *from_client = (char *)malloc(CLIENT_BUFFER_SIZE * sizeof(char));
     if (!from_client) {
         fprintf(stderr, "STDERR: Malloc null return for from_client, exiting...\n");
+        close(connection_socket);
+        free(from_server); free(arg);
         exit(EXIT_FAILURE);
     }// end if
 
-
+    /* MAIN LOOP */
     while (1) {
+        // await client input from stdin
         fgets(from_client, CLIENT_BUFFER_SIZE, stdin);
         
-        // TODO: process
         // stupid newline is included in fgets! hate it!
         from_client[strlen(from_client) - 1] = '\0';       
 
-        /*
-        #define EXIT ":Exit" X
-        #define HAPPY ":)"
-        #define SAD ":("
-        #define TIME ":mytime"
-        #define P1_TIME ":+1hr"
-        #define USERS ":Users"
-        #define P2P ":Msg"
-        */
-
         char *temp;
 
+        // process the input from client, sending through string to print to server thread.
         if (!strcmp(from_client, EXIT)) {
             fprintf(stderr, "STDERR: Client exiting...\n");
             // send exit so server can clean up
             ret = send(connection_socket, EXIT, strlen(EXIT) + 1, 0); 
             break; // we're ending the session
-        } else if (!strcmp(from_client, HAPPY)) { // TODO
+
+        } else if (!strcmp(from_client, HAPPY)) { 
             ret = send(connection_socket, HAPPY_STR, strlen(HAPPY_STR) + 1, 0);
-            if (ret < 0) { // if something went wrong, we have to end flow
-                break;
-            } // end if
-        } else if (!strcmp(from_client, SAD)) { // TODO
+            // if something went wrong, we have to end flow
+            if (ret < 0) { break; }// end if
+
+        } else if (!strcmp(from_client, SAD)) { 
             ret = send(connection_socket, SAD_STR, strlen(SAD_STR) + 1, 0);
-            if (ret < 0) { // if something went wrong, we have to end flow
-                break;
-            } // end if
-        } else if (!strcmp(from_client, TIME)) { // TODO
+            // if something went wrong, we have to end flow
+            if (ret < 0) { break; }// end if
+
+        } else if (!strcmp(from_client, TIME)) {
+            // get the current time!
             time_t current_time;
             time(&current_time);
             char *time_str = ctime(&current_time);
@@ -416,10 +345,11 @@ int main(int argc, char *argv[])
             snprintf(msg, sizeof(msg), "%s%s", TIME, time_str);          
     
             ret = send(connection_socket, msg, strlen(msg) + 1, 0);
-            if (ret < 0) { // if something went wrong, we have to end flow
-                break;
-            } // end if
-        } else if (!strcmp(from_client, P1_TIME)) { // TODO
+            // if something went wrong, we have to end flow
+            if (ret < 0) { break; }// end if
+
+        } else if (!strcmp(from_client, P1_TIME)) { 
+            // get current time plus an hour (3600 seconds)
             time_t current_time;
             time(&current_time);
             current_time += 3600;
@@ -432,31 +362,93 @@ int main(int argc, char *argv[])
             snprintf(msg, sizeof(msg), "%s%s", TIME, time_str);
             
             ret = send(connection_socket, msg, strlen(msg) + 1, 0);
-            if (ret < 0) { // if something went wrong, we have to end flow
-                break;
-            } // end if
+            // if something went wrong, we have to end flow
+            if (ret < 0) { break; }// end if
         
         }  else { 
             // this is either a general message to print to chat
             // OR we're sending through something special for server
             // to handle, like :Users or :Msg
             ret = send(connection_socket, from_client, strlen(from_client) + 1, 0);
-            if (ret < 0) { // if something went wrong, we have to end flow
-                break;
-            } // end if
+            // if something went wrong, we have to end flow
+            if (ret < 0) { break; }// end if
+
         }// end if
 
         // clear buffer for next message
         memset(from_client, 0, CLIENT_BUFFER_SIZE);
     } // end loop
+    
+    // we've broken out of loop for whatever reason.
 
     // free up resources
-    free(from_server);
-    free(from_client);
-    free(arg);
+    free(from_server); free(from_client); free(arg);
 
     // ensure my socket is closed
     close(connection_socket);
 
     return EXIT_SUCCESS;
-}
+} // end main
+
+/**
+ * =============================================================
+ * THREAD HANDLERS
+ * =============================================================
+ */ 
+
+/**
+ * handler for the thread that listens for server communication.
+ * this is a DUMB thread. it simply prints what is received.
+ * it is up to client thread server side to format things correctly
+ * for autograder.
+ */
+void *server_thread_handler(void * arg) {
+    struct ServerThreadArg *data = (struct ServerThreadArg *)arg;
+    int ret;
+
+    while(1) {
+        // listen to sever
+        ret = stream_recv(data->receiving_socket, data->buffer, data->buffer_size, 0); 
+        // connection closed or something went on
+        if (ret <= 0) { break; } // end if 
+
+        // print to stdout -- note i'm the only thread doing this
+        // so there is no locking protection here!
+        fprintf(stdout, "%s", data->buffer); fflush(stdout);
+        
+        // clear the buffer
+        memset(data->buffer, 0, data->buffer_size);
+
+    } // end loop
+
+    // don't do anything on clean up, main client thread will handle all resource frees.
+    fprintf(stderr, "STDERR: Server thread shutting down...\n");
+    return NULL;
+
+} // end function
+
+/**
+ * =============================================================
+ * UTILITY FUNCTIONS
+ * =============================================================
+ */
+
+/**
+ * this is to be used to wrap recv in order to use it for tcp STREAMS.
+ */
+int stream_recv(int sockfd, char *buffer, int buffer_size, int flags) {
+    int bytes_received = 0; // bytes received so far
+    int total_received = 0; // acts as offset into buffer.
+
+    while (
+        (bytes_received = recv(sockfd, (void *)buffer, buffer_size, flags)) > 0
+    ) {
+        total_received += bytes_received;
+       
+        // total received - 1 should be null if its the end of the message sent.
+        if (!buffer[total_received - 1]) {
+            break; // break out, process the message
+        } // end if
+    } // end loop
+    return bytes_received; // return this value as normal recv would
+} // end function

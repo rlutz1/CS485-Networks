@@ -16,6 +16,9 @@
  *   - interpret the chat commands and route the results
  */
 
+// TODO: graceful kill_client_list() exit. not mentioned in pdf, but would be good practice if time.
+// TODO: graceful error exit that frees all memory allocated by process
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,7 +78,6 @@ struct Client {
   char *username; // readable username of the client. 
 };
 
-
 /**
  * a structure to hold a client list, current capacity, and the lock for access
  */
@@ -84,7 +86,6 @@ struct ClientList {
   int current_capacity; // current number of clients in the chatroom
   pthread_mutex_t lock; // lock for accessing either one of these pieces
 };
-
 
 /**
  * the argument to be given to any client thread handler on start.
@@ -112,15 +113,220 @@ void add_client(int new_socket, char *username, struct ClientList *client_list, 
 void remove_client(int my_socket, struct ClientList *client_list);
 struct ClientList *init_client_list();
 void client_thread_cleanup(struct ClientThreadArg *arg);
-//int is_peer_to_peer(char *msg);
 void *client_thread_handler(void * arg);
 int stream_recv(int sockfd, char *buffer, int buffer_size, int flags);
 
 /**
  * =============================================================
- * GLOBALS
+ * MAIN SERVER PROCESS
  * =============================================================
  */
+
+int main(int argc, char *argv[])
+{
+    int ret; // for ret values of socket items
+
+    // set up some helpful values to hold on to
+    char *CHATROOM_PASSWORD = "";
+    int SERVER_PORT = -1;
+    
+    // set up stdout protector
+    pthread_mutex_t server_out_lock;
+    pthread_mutex_init(&server_out_lock, NULL);
+
+    // parse arguments
+    int c = 0;
+    int opt_index = 0;  
+
+    static struct option long_options[] = {
+            {PORT_CMD,     required_argument, 0,  0 },
+            {PASSWORD_CMD, required_argument, 0,  0 },
+            {           0,                 0, 0,  0 }    
+    };
+
+    while (c >= 0) { // control mechanism for processing the options
+        c = getopt_long(argc, argv, "", long_options, &opt_index); // get the next option index
+    
+        if (c == 0) {
+            if (strcmp(long_options[opt_index].name, PORT_CMD) == 0) {
+                SERVER_PORT = atoi(optarg);    
+            } else if (strcmp(long_options[opt_index].name, PASSWORD_CMD) == 0) {
+                CHATROOM_PASSWORD = optarg;
+            } // end if 
+        } // end if
+    } // end loop
+    
+    fprintf(stderr, "STDERR: Chatroom password: %s, Port: %d\n", CHATROOM_PASSWORD, SERVER_PORT);
+
+    // create a socket
+    // AF_INET -> IPv4
+    // SOCK_STREAM -> a TCP connection
+    // 0 -> assumed protocols from above two commands
+    int listening_socket = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (listening_socket == -1) { // error has occurred
+        fprintf(stderr, "STDERR: Socket creation failed!\n");
+        exit(EXIT_FAILURE);
+    } // end if
+
+    // use a sockaddr in for giving to bind
+    // this is the GENERAL LISTENING SOCKET!
+    // not the connecting socket for a specific client.
+    // https://man7.org/linux/man-pages/man3/sockaddr_in.3type.html
+    // https://man7.org/linux/man-pages/man3/inet_addr.3p.html
+    struct sockaddr_in address;
+    address.sin_family = AF_INET; // same IPv4 family name
+    address.sin_port = htons(SERVER_PORT); // legit the port number
+    address.sin_addr.s_addr = inet_addr(HOST_IP); // server addr, local host always
+
+    // to avoid the socket stuck in time wait.
+    const int enable = 1;
+    setsockopt(listening_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+
+    // bind the address, port to the socket
+    // socket -> the socket descriptor
+    // address -> the sock addr made above with all connection info
+    // size of the address -> need to pass
+    // https://man7.org/linux/man-pages/man2/bind.2.html
+    ret = bind(
+        listening_socket, 
+        (struct sockaddr *) &address, 
+        sizeof(address)
+    );
+
+    // error checking
+    if (ret == -1) {
+        fprintf(stderr, "STDERR: Socket binding failed!\n");
+        exit(EXIT_FAILURE);
+    } // end if
+
+    // then listen
+    // mark socket as passive -- socket will be able to accept
+    // incoming connection requests using accept
+    // https://man7.org/linux/man-pages/man2/listen.2.html
+    // listening_socket -> our socket file descriptor (sockfd)
+    // backlog -> how many pending connections can grow in a queue
+    //            for this socket.
+    //            for right now, making 1? but play
+    ret = listen(listening_socket, 1);
+    if (ret == -1) { // error occurred
+        fprintf(stderr, "STDERR: Listening setup failed!\n"); 
+        exit(EXIT_FAILURE);
+    } // end if
+
+    // TODO: print_to_server instead, but okay here since no threads yet.
+    fprintf(stdout, INIT_CONNECT_STR, SERVER_PORT); fflush(stdout);
+
+    // server is now up and running, ready for connections
+    // init the client list.
+    // TODO: i should have a kill_client_list as well to clean this up,
+    // but no graceful exit given in the instructions.
+    struct ClientList * client_list = init_client_list();
+  
+    char *username_buffer = (char *)malloc(USERNAME_BUFFER_SIZE * sizeof(char)); // buffer for username receipt
+    char *password_buffer = (char *)malloc(PASSWORD_BUFFER_SIZE * sizeof(char)); // buffer for password receipt					     
+
+    /* MAIN LOOP */
+    while (1) {
+        // accept once knock on door.
+        // return file descriptor for a NEW client socket created
+        // on connection accept.
+        // original socket is unaffected by this call. 
+        // will pull the first from the queue for connections.
+        // if socket is not marked "non-blocking", this call blocks
+        // the caller, hence the while true is a "quiet wait", not busy
+        // https://man7.org/linux/man-pages/man2/accept.2.html
+        int client_socket = accept(listening_socket, 0, 0);
+
+        // quick error check
+        if (client_socket == -1) {
+            fprintf(stderr, "STDERR: Accepting of new client connection failed!\n");
+            continue; // allow continuation of server listening if this failed
+        } // end if
+      
+        // server at capacity -- immediately reject connection with rejection string
+        pthread_mutex_lock(&(client_list->lock)); // lock capacity count
+        if (client_list->current_capacity == MAX_CLIENTS) {
+            fprintf(stderr, "STDERR: Server full!\n");
+            ret = send(client_socket, SERVER_FULL_STR, strlen(SERVER_FULL_STR) + 1, 0);
+            close(client_socket); // clean up
+            pthread_mutex_unlock(&(client_list->lock)); // unlock the lock
+            continue; // skip all the following iteration
+        } // end if
+      
+        // we're not at capacity -- initiate a new connection
+        // client_list->current_capacity += 1; // NOTE: moving to add_client
+        pthread_mutex_unlock(&(client_list->lock)); // release client list
+        
+        // send through a dummy to release the client recv hang
+        ret = send(client_socket, ACK, strlen(ACK) + 1, 0);
+        if (ret < 0) { 
+            close(client_socket);
+            memset(username_buffer, 0, USERNAME_BUFFER_SIZE);
+            memset(password_buffer, 0, PASSWORD_BUFFER_SIZE);   
+            continue;
+        } // end if
+        
+        // expect password next
+        ret = stream_recv(client_socket, password_buffer, PASSWORD_BUFFER_SIZE, 0);       
+        if (ret <= 0) { // something wrong here
+            close(client_socket);
+            memset(username_buffer, 0, USERNAME_BUFFER_SIZE);
+            memset(password_buffer, 0, PASSWORD_BUFFER_SIZE);
+            continue;
+        } // connection closed or something went on 
+
+        // verify that the password is correct (nothing to verify about username)
+        if (strcmp(password_buffer, CHATROOM_PASSWORD)) {
+            fprintf(stderr, "STDERR: Incorrect password given.\n"); fflush(stderr);
+            ret = send(client_socket, INCORRECT_PASS_STR, strlen(INCORRECT_PASS_STR) + 1, 0);
+            close(client_socket); // clean up, close connection
+            continue; // back to acepting
+        } // end if
+        
+        // password was correct, send a simple ack
+        ret = send(client_socket, ACK, strlen(ACK) + 1, 0);
+        if (ret < 0) { 
+            close(client_socket);
+            memset(username_buffer, 0, USERNAME_BUFFER_SIZE);
+            memset(password_buffer, 0, PASSWORD_BUFFER_SIZE);
+            continue;
+        } // end if
+
+        // password all good need a username now
+        ret = stream_recv(client_socket, username_buffer, USERNAME_BUFFER_SIZE, 0); 
+        if (ret <= 0) { // something wrong here
+            close(client_socket);
+            memset(username_buffer, 0, USERNAME_BUFFER_SIZE);
+            memset(password_buffer, 0, PASSWORD_BUFFER_SIZE);
+            continue;
+        } // connection closed or something went on 
+
+        // next, spin up thread to handle this client
+        // client is waiting on recv during this period to be safe.
+        // make a thread to handle this client.
+        add_client(client_socket, username_buffer, client_list, &server_out_lock);
+
+        // print both to server and all clients that new person entered.
+        char msg[strlen(NEW_PERSON_STR) + strlen(username_buffer) + 1]; // arbitrary for now
+        snprintf(msg, sizeof(msg), NEW_PERSON_STR, username_buffer);
+        
+        print_to_server(msg, &server_out_lock); // print to the server (threadsafe)
+        broadcast(msg, NO_EXCLUSIONS, client_list); // this will release the hold on the client side and print on all others.
+
+        // clear these buffers
+        memset(username_buffer, 0, USERNAME_BUFFER_SIZE);
+        memset(password_buffer, 0, PASSWORD_BUFFER_SIZE);
+
+        // go back to accepting
+  } // end loop
+
+  // NOTE: there's no graceful exit here! these are just placeholders
+  close(listening_socket);
+  free(username_buffer); free(password_buffer); free(client_list);
+
+  return EXIT_SUCCESS;
+} // end main
 
 
 /**
@@ -557,7 +763,7 @@ int stream_recv(int sockfd, char *buffer, int buffer_size, int flags) {
     int total_received = 0; // acts as offset into buffer.
 
     while (
-        (bytes_received = recv(sockfd, (void *)buffer, buffer_size, 0)) > 0
+        (bytes_received = recv(sockfd, (void *)buffer, buffer_size, flags)) > 0
     ) {
         total_received += bytes_received;
         // total_received - 1 should be null if its the end of the message sent.
@@ -570,225 +776,5 @@ int stream_recv(int sockfd, char *buffer, int buffer_size, int flags) {
 } // end function
 
 
-// TODO: graceful kill_client_list() exit. not mentioned in pdf, but would be good practice if time.
-// TODO: graceful error exit that frees all memory allocated by process
-
-/**
- * =============================================================
- * MAIN SERVER PROCESS
- * =============================================================
- */
-
-int main(int argc, char *argv[])
-{
-    int ret; // for ret values of socket items
-
-    // set up some helpful values to hold on to
-    char *CHATROOM_PASSWORD = "";
-    int SERVER_PORT = -1;
-    
-    // set up stdout protector
-    pthread_mutex_t server_out_lock;
-    pthread_mutex_init(&server_out_lock, NULL);
 
 
-    // parse arguments
-    int c = 0;
-    int opt_index = 0;  
-
-    static struct option long_options[] = {
-                  {PORT_CMD,     required_argument, 0,  0 },
-                  {PASSWORD_CMD, required_argument, 0,  0 },
-                  {           0,                 0, 0,  0 }    
-    };
-
-    while (c >= 0) { // control mechanism for processing the options
-        c = getopt_long(argc, argv, "", long_options, &opt_index); // get the next option index
-    
-        if (c == 0) {
-            if (strcmp(long_options[opt_index].name, PORT_CMD) == 0) {
-                SERVER_PORT = atoi(optarg);    
-            } else if (strcmp(long_options[opt_index].name, PASSWORD_CMD) == 0) {
-                CHATROOM_PASSWORD = optarg;
-            } // end if 
-        } // end if
-    } // end loop
-    
-    fprintf(stderr, "STDERR: Chatroom password: %s, Port: %d\n", CHATROOM_PASSWORD, SERVER_PORT);
-
-    // create a socket
-    // AF_INET -> IPv4
-    // SOCK_STREAM -> a TCP connection
-    // 0 -> assumed protocols from above two commands
-    int listening_socket = socket(AF_INET, SOCK_STREAM, 0);
-
-    if (listening_socket == -1) { // error has occurred
-        fprintf(stderr, "STDERR: Socket creation failed!\n");
-        exit(EXIT_FAILURE);
-    } // end if
-
-    // use a sockaddr in for giving to bind
-    // this is the GENERAL LISTENING SOCKET!
-    // not the connecting socket for a specific client.
-    // https://man7.org/linux/man-pages/man3/sockaddr_in.3type.html
-    // https://man7.org/linux/man-pages/man3/inet_addr.3p.html
-    struct sockaddr_in address;
-    address.sin_family = AF_INET; // same IPv4 family name
-    address.sin_port = htons(SERVER_PORT); // legit the port number
-    address.sin_addr.s_addr = inet_addr(HOST_IP); // server addr, local host always
-
-    const int enable = 1;
-    setsockopt(listening_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
-
-    // bind the address, port to the socket
-    // socket -> the socket descriptor
-    // address -> the sock addr made above with all connection info
-    // size of the address -> need to pass
-    // https://man7.org/linux/man-pages/man2/bind.2.html
-    ret = bind(
-        listening_socket, 
-        (struct sockaddr *) &address, 
-        sizeof(address)
-    );
-
-    // error checking
-    if (ret == -1) {
-        fprintf(stderr, "STDERR: Socket binding failed!\n");
-        exit(EXIT_FAILURE);
-    } // end if
-
-    // then listen
-    // mark socket as passive -- socket will be able to accept
-    // incoming connection requests using accept
-    // https://man7.org/linux/man-pages/man2/listen.2.html
-    // listening_socket -> our socket file descriptor (sockfd)
-    // backlog -> how many pending connections can grow in a queue
-    //            for this socket.
-    //            for right now, making 1? but play
-    ret = listen(listening_socket, 1);
-    if (ret == -1) { // error occurred
-        fprintf(stderr, "STDERR: Listening setup failed!\n"); 
-        exit(EXIT_FAILURE);
-    } // end if
-
-    // TODO: print_to_server instead, but okay here since no threads yet.
-    fprintf(stdout, INIT_CONNECT_STR, SERVER_PORT); fflush(stdout);
-
-    // server is now up and running, ready for connections
-    // init the client list.
-    // TODO: i should have a kill_client_list as well to clean this up.
-    struct ClientList * client_list = init_client_list();
-  
-    char *username_buffer = (char *)malloc(USERNAME_BUFFER_SIZE * sizeof(char)); // max of 8 characters for username
-    char *password_buffer = (char *)malloc(PASSWORD_BUFFER_SIZE * sizeof(char)); // max of 5 characters for password						     
-
-    while (1) {
-        // main process of the server:
-        // await a new connection request
-        // verify room in the chatroom
-        // verify password
-        // spin up new thread to handle this connection
-
-        // accept once knock on door -- likely threading here.
-        // return file descriptor for a NEW client socket created
-        // on connection accept.
-        // original socket is unaffected by this call. 
-        // will pull the first from the queue for connections.
-        // if socket is not marked "non-blocking", this call blocks
-        // the caller, hence the while true is a "quiet wait", not busy
-        // https://man7.org/linux/man-pages/man2/accept.2.html
-  
-        // ignoring for now since on the same machine for this testing environment:	  
-        // struct sockaddr_in client_address; // this will be filled in by accept with client info
-
-        int client_socket = accept(listening_socket, 0, 0);
-
-        // quick error check
-        if (client_socket == -1) {
-            fprintf(stderr, "STDERR: Accepting of new client connection failed!\n");
-            continue; // allow continuation of server if this failed
-        } // end if
-      
-        // server at capacity -- immediately reject connection with rejection string
-        pthread_mutex_lock(&(client_list->lock)); // lock capacity count
-        if (client_list->current_capacity == MAX_CLIENTS) {
-            fprintf(stderr, "STDERR: Server full!\n");
-            ret = send(client_socket, SERVER_FULL_STR, strlen(SERVER_FULL_STR) + 1, 0);
-            close(client_socket); // clean up
-            pthread_mutex_unlock(&(client_list->lock)); // unlock the lock
-            continue; // skip all the following iteration
-        } // end if
-      
-        // we're not at capacity -- initiate a new connection
-        // client_list->current_capacity += 1; // NOTE: moving to add_client
-        pthread_mutex_unlock(&(client_list->lock)); // release client list
-        
-        // send through a dummy to release the client recv hang
-        ret = send(client_socket, ACK, strlen(ACK) + 1, 0);
-        if (ret < 0) { 
-            close(client_socket);
-            memset(username_buffer, 0, USERNAME_BUFFER_SIZE);
-            memset(password_buffer, 0, PASSWORD_BUFFER_SIZE);   
-            continue;
-        } // end if
-        
-        // expect password next
-        ret = stream_recv(client_socket, password_buffer, PASSWORD_BUFFER_SIZE, 0);       
-        if (ret <= 0) { // something wrong here
-            close(client_socket);
-            memset(username_buffer, 0, USERNAME_BUFFER_SIZE);
-            memset(password_buffer, 0, PASSWORD_BUFFER_SIZE);
-            continue;
-        } // connection closed or something went on 
-
-        // verify that the password is correct (nothing to verify about username)
-        if (strcmp(password_buffer, CHATROOM_PASSWORD)) {
-            fprintf(stderr, "STDERR: Incorrect password given.\n"); fflush(stderr);
-            ret = send(client_socket, INCORRECT_PASS_STR, strlen(INCORRECT_PASS_STR) + 1, 0);
-            close(client_socket); // clean up, close connection
-            continue; // back to acepting
-        } // end if
-        
-        // password was correct, send a simple ack
-        ret = send(client_socket, ACK, strlen(ACK) + 1, 0);
-        if (ret < 0) { 
-            close(client_socket);
-            memset(username_buffer, 0, USERNAME_BUFFER_SIZE);
-            memset(password_buffer, 0, PASSWORD_BUFFER_SIZE);
-            continue;
-        } // end if
-
-        // password all good need a username now
-        ret = stream_recv(client_socket, username_buffer, USERNAME_BUFFER_SIZE, 0); 
-        if (ret <= 0) { // something wrong here
-            close(client_socket);
-            memset(username_buffer, 0, USERNAME_BUFFER_SIZE);
-            memset(password_buffer, 0, PASSWORD_BUFFER_SIZE);
-            continue;
-        } // connection closed or something went on 
-
-        // next, spin up thread to handle this client
-        // client is waiting on recv during this period to be safe.
-        // make a thread to handle this client.
-        add_client(client_socket, username_buffer, client_list, &server_out_lock);
-
-        // print both to server and all other clients that new person entered.
-        char str_builder[strlen(NEW_PERSON_STR) + strlen(username_buffer) + 1]; // arbitrary for now
-        snprintf(str_builder, sizeof(str_builder), NEW_PERSON_STR, username_buffer);
-        
-        print_to_server(str_builder, &server_out_lock);
-        broadcast(str_builder, NO_EXCLUSIONS, client_list); // this will release the hold on the client side.
-
-        // clear these buffers
-        memset(username_buffer, 0, USERNAME_BUFFER_SIZE);
-        memset(password_buffer, 0, PASSWORD_BUFFER_SIZE);
-
-        // go back to accepting
-  } // end loop
-
-  // NOTE: there's no graceful exit here! these are just placeholders
-  close(listening_socket);
-  free(username_buffer); free(password_buffer); free(client_list);
-
-  return EXIT_SUCCESS;
-}
