@@ -397,11 +397,8 @@ int peer_to_peer(char *username, char *msg, struct ClientList *client_list) {
   return success;
 } // end function
 
-
 /**
- * this may be replaced to use snprintf if this messes with autograder at all.
- * unsure yet.
- * but this is the threadsafe way all server components
+ * threadsafe way all server components
  * should be printing to stdout stream.
  */
 void print_to_server(char *msg, pthread_mutex_t *server_out_lock) {
@@ -409,7 +406,6 @@ void print_to_server(char *msg, pthread_mutex_t *server_out_lock) {
   fprintf(stdout, "%s", msg); fflush(stdout);
   pthread_mutex_unlock(server_out_lock);
 } // end function
-
 
 /*
  * this is to only ever used by the main server process.
@@ -473,7 +469,7 @@ void add_client(int new_socket, char *username, struct ClientList *client_list, 
         int ret = pthread_create(&thread, NULL, client_thread_handler, arg);
         if (ret) {
             fprintf(stderr, "STDERR: pthread_create error! Exiting...\n");
-            exit(EXIT_FAILURE);
+            exit(EXIT_FAILURE); // TODO: not a mega graceful shutdown.
         } // end if
         ret = pthread_detach(thread); // instead of blocking with join, let os auto clean on thread finish.
         if (ret) {
@@ -487,7 +483,6 @@ void add_client(int new_socket, char *username, struct ClientList *client_list, 
 
   pthread_mutex_unlock(&(client_list->lock));
 } // end function
-
 
 /**
  * this function will be used by ALL CLIENT THREADS
@@ -515,7 +510,6 @@ void remove_client(int my_socket, struct ClientList *client_list) {
 
     pthread_mutex_unlock(&(client_list->lock));
 } // end function
-
 
 /**
  * initialize function for client list for cleanliness -- to be called by the 
@@ -548,7 +542,7 @@ char *build_user_list(struct ClientList *client_list) {
     char **user_list = (char **)calloc(MAX_CLIENTS, sizeof(char *));
     if (!user_list) {
         fprintf(stderr, "STDERR: calloc failed in building user list!\n");
-        exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE); // TODO: again, not super graceful
     } // end if
 
     struct Client *c;
@@ -569,7 +563,6 @@ char *build_user_list(struct ClientList *client_list) {
 
     // should now have all active users' names.
     // now for the fun part: piecing together into a comma separated string.
-
     char *user_list_str = calloc(
         user_lens // the usernames
         + (2 * (user_i - 1)) // the comma and spaces separating intermediate names 
@@ -635,7 +628,6 @@ void client_thread_cleanup(struct ClientThreadArg *arg) {
     free(arg);
 } // end function
 
-
 /**
  * the main handler for a client connection manager thread.
  */
@@ -643,21 +635,16 @@ void *client_thread_handler(void * arg) {
     struct ClientThreadArg *data = (struct ClientThreadArg *)arg;
 
     while(1) { // this is my forever job until connection closes for whatever reason.
-        
         // i exist to read input from the client and take appropriate actions.
-        
         // first, read in recv, blocking on the call until something occurs.
-        // need to read recv in loop because TCP is a STREAM, and not all of message guaranteed at once.
-
         int ret = stream_recv(data->receiving_socket, data->buffer, data->buffer_size, 0);    
-        if (ret <= 0) { // strangeness check, shouldn't get here if client shuts down gracefully.
+        if (ret <= 0) { // strangeness check, shouldn't get here if client shuts down gracefully, but accounts for this.
             fprintf(stderr, "STDERR: Connection closed unexpectedly for client thread. Shutting down...\n");
-            client_thread_cleanup(data); // cleanup!
             break; // end the while (1)
         } // end if 
 
         // we hypothetically have a complete message from client in our buffer now.
-        fprintf(stderr, "STDERR: Client thread received: %s\n", data->buffer); // TODO
+        fprintf(stderr, "STDERR: Client thread received: %s\n", data->buffer); 
         char *temp;        
 
         if ((temp = strstr(data->buffer, TIME)) && (temp - data->buffer == 0)) { // if :mytime is at the beginning of the msg
@@ -669,7 +656,7 @@ void *client_thread_handler(void * arg) {
             broadcast(msg, NO_EXCLUSIONS, data->client_list); // send out to all clients.
             print_to_server(msg, data->server_out_lock); // send to the server output.
 
-        } else if ((temp = strstr(data->buffer, P2P)) && (temp - data->buffer == 0)) {
+        } else if ((temp = strstr(data->buffer, P2P)) && (temp - data->buffer == 0)) { // if :Msg at beginning
             // handle a special peer to peer message in format: ":Msg [username] [message]"
             temp += (strlen(P2P)); // over shoot the :Msg
             if (!(*temp) || !(*(temp + 1))) { continue; } // ignore if just ":Msg" or ":Msg " sent through
@@ -705,7 +692,7 @@ void *client_thread_handler(void * arg) {
        
             free(to); // free resource
 
-        } else if (!strcmp(data->buffer, USERS)) {    
+        } else if (!strcmp(data->buffer, USERS)) { // if :Users sent through only
             // :Users will also be sent through like :Exit to handle!
             // need to build the current list of users string and then send through the msg
             char *user_list = build_user_list(data->client_list);
@@ -720,8 +707,8 @@ void *client_thread_handler(void * arg) {
           
             free(user_list); // need to free this post-use.
 
-        } else if (!strcmp(data->buffer, EXIT)) {            
-            // buid leaving string
+        } else if (!strcmp(data->buffer, EXIT)) { // client is gracefully exiting with :Exit     
+            // build leaving string
             char msg[strlen(data->username) + strlen(LEAVING_PERSON_STR) + 1];
             snprintf(msg, sizeof(msg), LEAVING_PERSON_STR, data->username);
             
@@ -729,9 +716,6 @@ void *client_thread_handler(void * arg) {
             broadcast(msg, data->receiving_socket, data->client_list);
             print_to_server(msg, data->server_out_lock);
   
-            // client is exiting chat 
-            client_thread_cleanup(data); // cleanup my stuff
-          
             break; // this client thread is done, client has left the chat
         } else {
             // this is a general broadcast message. send to all live clients.
@@ -746,6 +730,8 @@ void *client_thread_handler(void * arg) {
         memset(data->buffer, 0, data->buffer_size);     
 
     } // end loop 
+
+    client_thread_cleanup(data); // cleanup my stuff
 
     return NULL;
 } // end function
