@@ -334,3 +334,39 @@ hmmm, [memset vs malloc](https://cplusplus.com/forum/general/69810/)
 hypothetically both sockets are set up, but get a recv error on the server side when running the client.
 
 **note that the programs need to be run on the same machine because we're just using localhost.**
+
+
+
+
+
+## todo list for finalizing
+
+~~+ need to send "x joined the chat" to everyone but the one who just joined~~
+  ~~+ i think i can change broadcast generally to send to all others not including the caller's socket. it looks like im not supposed to print on the sender's output.~~
+  ~~+ nope! apparently mytime is a special case that sends to all.~~
+  ~~+ also: something strange where things aren't quite printing and idk if its a buffer issue? specifically more an issue when only one person in chat~~
++ chat shortcuts -> string parsing.
+  + users
+  + msg p2p
++ ~~fix the listening port~~--*interesting needed to assure byte ordering for network stuff with htons()*
+
+
+
+
+
+**NOTE**: last thing done on thurs--changed broadcast to send to everyone but the calling socket, but something funky afoot with the output. like something getting clogged, and then another user joins and it unclogs? seems weird? like missing some stuff. not clear if this is a new thing or this was happening pre-change, so be sure to confirm.
++ it was--forgot about the release message, now fixed.
+
+lients can type any text message, or can type one of the following shortcut codes to display
+specific text:
+~~(a) Type :) to display [feeling happy]~~
+~~(b) Type :( to display [feeling sad]~~
+~~(c) Type :mytime to display the current time~~
+~~(d) Type :+1hr to display the current time + 1 hour~~
+~~Note: for :mytime and :+1hr, format time as “Weekday Month Day Time Year”. For example: Mon Aug 13 08:23:14 2012.~~
+(e) Type :Users to display a list of all active users.
+(f) Type :Msg <username> <message> to send a private message to a specific user
+(g) Type :Exit to close your connection and terminate the client.
+
+(h) Fun part (not graded): \ overrides the next word until a space or newline. For example,
+\:mytime will print :mytime instead of the actual time.
