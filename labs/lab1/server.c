@@ -106,8 +106,8 @@ struct ClientThreadArg {
  * =============================================================
  */
 
-void broadcast(char *msg, int my_socket, struct ClientList *client_list);
-void peer_to_peer(char *username, char *msg, struct ClientList *client_list);
+void broadcast(char *msg, int exclude_socket, struct ClientList *client_list);
+int peer_to_peer(char *username, char *msg, struct ClientList *client_list);
 void print_to_server(char *msg, pthread_mutex_t *server_out_lock);
 void add_client(int new_socket, char *username, struct ClientList *client_list, pthread_mutex_t *server_out_lock);
 void remove_client(int my_socket, struct ClientList *client_list);
@@ -328,7 +328,6 @@ int main(int argc, char *argv[])
   return EXIT_SUCCESS;
 } // end main
 
-
 /**
  * =============================================================
  * UTILITY FUNCTIONS
@@ -338,7 +337,7 @@ int main(int argc, char *argv[])
 /**
  * this is a general method for client threads to 
  * use when wanting to send a message to the general chatroom,
- * or all live clients in the chat that are NOT ME (my_socket)
+ * or all live clients in the chat that are NOT ME (exclude_socket)
  */
 void broadcast(char *msg, int exclude_socket, struct ClientList *client_list) {
   pthread_mutex_lock(&(client_list->lock));
@@ -351,13 +350,12 @@ void broadcast(char *msg, int exclude_socket, struct ClientList *client_list) {
   for (int i = 0; i < MAX_CLIENTS; i++) {
     c = client_list->clients[i];
     if (c) { // if a live client
-        // use my_socket as a flag: if i give a legitimate socket value
+        // use exclude_socket as a flag: if i give a legitimate socket value
         // it means EXCLUDE the message from my own client.
         if (exclude_socket >= 0) {
             if (c->sending_socket != exclude_socket) {
                 fprintf(stderr, "STDERR: sending to not me!\n");
                 ret = send(c->sending_socket, msg, strlen(msg) + 1, 0);
-                // TODO: handle send error? likely just ignore.
             } // end if
         } else {
             // if the socket given is a false neg value, it means i want to
@@ -370,13 +368,13 @@ void broadcast(char *msg, int exclude_socket, struct ClientList *client_list) {
   pthread_mutex_unlock(&(client_list->lock));
 } // end function
 
-
 /**
  * this is a general message to send a message to a specific user
  * as detected by the client threads.
  */
-void peer_to_peer(char *username, char *msg, struct ClientList *client_list) {
+int peer_to_peer(char *username, char *msg, struct ClientList *client_list) {
   pthread_mutex_lock(&(client_list->lock));
+  int success = 0;
 
   struct Client *c;
   int ret;
@@ -389,12 +387,14 @@ void peer_to_peer(char *username, char *msg, struct ClientList *client_list) {
     if (c && !strcmp(username, c->username)) {
       // if a live client, send
       ret = send(c->sending_socket, msg, strlen(msg) + 1, 0);
-      // TODO: handle send error? likely just ignore.
+      // if username found AND send successful
+      if (ret >= 0) { success = 1; } // end if
       break; // we're done, move on with life
     } // end if
   } // end loop
 
   pthread_mutex_unlock(&(client_list->lock));
+  return success;
 } // end function
 
 
@@ -599,29 +599,24 @@ char *build_user_list(struct ClientList *client_list) {
     return user_list_str; // server thread will use this and free
 } // end function
 
-
-
-
-
 /**
- * given a username sent through by client, find the corresponding
- * socket if exists.
+ * this is to be used to wrap recv in order to use it for tcp STREAMS.
  */
-int get_socket_by_username(char *username, struct ClientList* client_list) {
-    pthread_mutex_lock(&(client_list->lock));
-    int target_socket = -1;
+int stream_recv(int sockfd, char *buffer, int buffer_size, int flags) {
+    int bytes_received = 0; // bytes received so far
+    int total_received = 0; // acts as offset into buffer.
 
-    struct Client *c;
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        c = client_list->clients[i];
-        if (c && !strcmp(username, c->username)) {
-            target_socket = c->sending_socket;
-            break;
+    while (
+        (bytes_received = recv(sockfd, (void *)buffer, buffer_size, flags)) > 0
+    ) {
+        total_received += bytes_received;
+        // total_received - 1 should be null if its the end of the message sent.
+        if (!buffer[total_received - 1]) {
+            break; // break out, process the message
         } // end if
     } // end loop
 
-    pthread_mutex_unlock(&(client_list->lock));
-    return target_socket;
+    return bytes_received; // return this value as normal recv would
 } // end function
 
 /**
@@ -675,33 +670,33 @@ void *client_thread_handler(void * arg) {
             print_to_server(msg, data->server_out_lock); // send to the server output.
 
         } else if ((temp = strstr(data->buffer, P2P)) && (temp - data->buffer == 0)) {
-            // if we get :Msg [username] [message here], need to parse and format.
- //            P2P_MSG_STR "[Message from %s]: %s\n"
-            //#define P2P_OCURR_STR 
-            temp += (strlen(P2P)); // over shoot
+            // handle a special peer to peer message in format: ":Msg [username] [message]"
+            temp += (strlen(P2P)); // over shoot the :Msg
             if (!(*temp) || !(*(temp + 1))) { continue; } // ignore if just ":Msg" or ":Msg " sent through
             temp++; // hop over the space in ":Msg "
        
-            char *to = (char *)calloc(strlen(temp), sizeof(char));// make a sending username slot
+            char *to = (char *)calloc(strlen(temp), sizeof(char));// make a big enough sending username slot
             if (!to) {
                 fprintf(stderr, "STDERR: calloc failed in P2P!\n");
-                exit(EXIT_FAILURE);
+                continue;
             } // end if
             
+            // now, gather the username.
             int i = 0;
             while (*temp != ' ' && *temp != '\0') { // collect everything before next space or null
-                to[i] = *temp;
+                to[i] = *temp; // gather non-space/non-null char
                 i++; temp++;
             } // end loop
-            to[i] = '\0'; // end the string
-            temp++; // move to the message
+            to[i] = '\0'; // end the username string
+            temp++; // move to the message, hopping over space or to a null
 
-            int peer_socket = get_socket_by_username(to, data->client_list);
-            if (peer_socket >= 0) { // all went well, found username.
-                char msg[strlen(data->username) + strlen(temp) + strlen(P2P_MSG_STR) + 1];
-                snprintf(msg, sizeof(msg), P2P_MSG_STR, data->username, temp); // send to peer
-                int ret = send(peer_socket, msg, strlen(msg) + 1, 0); // send only through to receiver.
-        
+            // generat the message to send through to peer
+            char msg[strlen(data->username) + strlen(temp) + strlen(P2P_MSG_STR) + 1];
+            snprintf(msg, sizeof(msg), P2P_MSG_STR, data->username, temp); 
+            
+            int success = peer_to_peer(to, msg, data->client_list); // try sending the message
+
+            if (success) { // all went well, found username and sent without fail      
                 // print special to server
                 char for_server[strlen(data->username) + strlen(to) + strlen(P2P_OCURR_STR) + 1];   
                 snprintf(for_server, sizeof(for_server), P2P_OCURR_STR, data->username, to);
@@ -738,7 +733,7 @@ void *client_thread_handler(void * arg) {
             client_thread_cleanup(data); // cleanup my stuff
           
             break; // this client thread is done, client has left the chat
-        } else { // TODO: maybe use sn printf to be cleaner
+        } else {
             // this is a general broadcast message. send to all live clients.
             char msg[strlen(GEN_MSG_STR) + strlen(data->username) + strlen(data->buffer)+ 1];
             snprintf(msg, sizeof(msg), GEN_MSG_STR, data->username, data->buffer);
@@ -754,27 +749,3 @@ void *client_thread_handler(void * arg) {
 
     return NULL;
 } // end function
-
-/**
- * this is to be used to wrap recv in order to use it for tcp STREAMS.
- */
-int stream_recv(int sockfd, char *buffer, int buffer_size, int flags) {
-    int bytes_received = 0; // bytes received so far
-    int total_received = 0; // acts as offset into buffer.
-
-    while (
-        (bytes_received = recv(sockfd, (void *)buffer, buffer_size, flags)) > 0
-    ) {
-        total_received += bytes_received;
-        // total_received - 1 should be null if its the end of the message sent.
-        if (!buffer[total_received - 1]) {
-            break; // break out, process the message
-        } // end if
-    } // end loop
-
-    return bytes_received; // return this value as normal recv would
-} // end function
-
-
-
-
