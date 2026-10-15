@@ -149,3 +149,6 @@ this is the general state flow but there are many cases not illustrated here.
 **RST bit** is for when a syn packet sent for a port that has nothing listening for tcp (reset -- i don't have a socket for that segment, pls don't resend)
 + fun: this RST receipt is actually a great way to tell if there's a firewall -- if RST is never sent back, and no ack to the syn, then there's likely a firewall blocking that port
 + syn flooding -- send a bunch of syn's and never send the ACK in response to synack -- a bunch of resources are allocated for half open connections and real clients are denied. 
+
+
+## congestion control, more detail
