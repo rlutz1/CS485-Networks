@@ -152,3 +152,31 @@ this is the general state flow but there are many cases not illustrated here.
 
 
 ## congestion control, more detail
+
+approaches to congestion control: 
+
+1. **end to end** -> network layer provides no support for congestion control purposes (TCP TAKES THIS APPROACH)
+2. **network assisted** -> there is explicit feedback from the network layer about congestion and general state of the network
+   + in this case, it's typically in the form of a *bit set on a packet* being routed through the network or in the form of a simple "*choke packet*" sent out to the sender to say "I'm congested!"
+
+
+
+
+
+
+HERE** -> somehow missed a couple pages of this: cclxxxviii
+
+
+**self-clocking**: TCP uses ack's to trigger/clock its increase in congestion window size
+
+*principles of TCP for congestion*
++ lost segment -> congestion, so decrease the sender's rate 
+  + on original ACK and three duplicates -> implicit loss event; but loss means congestion is likely? actually maybe disagree with this. doesn't receipt of ack's mean that the network is still working?
++ an acknowledged segment indicates the network is fine, so sender should increase their rate when receiving an ack for a previously unack'd segment
++ bandwidth probing continues even after an implied congestion
+
+**TCP congestion control algorithm**
++ 3 principles
+  1. slow start (required)
+  2. congestion avoidance (required)
+  3. fast recovery (recommended but not required) 
