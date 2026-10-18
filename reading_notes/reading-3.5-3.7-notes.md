@@ -125,6 +125,7 @@ one timer for retransmission recommended because a timer for each packet is a hu
 
 + last byte sent and last byte ackd -> tracked by sender because its the amount of unacknowledged data that A has sent into connection
 + so, by ensuring: LastByteSent – LastByteAcked <= rwnd, A is not overflowing the buffer at receiver B
++ rwnd -> receiving window -- how much host can still take buffer-wise
   + B tells A what rwnd is with head segment
 
 ### connection: syn, ack, synack
@@ -156,16 +157,23 @@ this is the general state flow but there are many cases not illustrated here.
 approaches to congestion control: 
 
 1. **end to end** -> network layer provides no support for congestion control purposes (TCP TAKES THIS APPROACH)
+   + IP doesn't provide any information about congestion 
 2. **network assisted** -> there is explicit feedback from the network layer about congestion and general state of the network
    + in this case, it's typically in the form of a *bit set on a packet* being routed through the network or in the form of a simple "*choke packet*" sent out to the sender to say "I'm congested!"
 
+it's all on the TCP sender to limit themselves based on what's happening
 
+**3 main questions:** 
++ how does tcp sender limit rate
++ how does tcp sniff out congestion
++ what algorithm is used to change send rate as function of congestion
 
+### rate limiting
 
+tcp sender keeps track of congestion window: *cwnd*
++ we decide that the amount of unacknowledged data of a sender cannot exceed the minimum of either cwnd or rwnd
 
-
-HERE** -> somehow missed a couple pages of this: cclxxxviii
-
+![cwnd](images/image-89.png)
 
 **self-clocking**: TCP uses ack's to trigger/clock its increase in congestion window size
 
@@ -180,3 +188,62 @@ HERE** -> somehow missed a couple pages of this: cclxxxviii
   1. slow start (required)
   2. congestion avoidance (required)
   3. fast recovery (recommended but not required) 
+
+sending rate is typically constrained to a segment size / RTT, keep in mind as follows.
+
+### slow start
+
+(MSS == max segment size)
+
+as TCP connection starts, cwnd is usually set to small value of 1 MSS (sending rate MSS/RTT)
++ ie: if MSS = 500 bytes and RTT == 200 msec, initial sending rate is ~20 kbps
+
+
+does like a doubling thing
+
+![mss adding](images/image-90.png)
++ doubling the sending rate every RTT
+
+when does it stop?
++ loss event indicated by timeout -- set cwnd to 1 and start process anew
+  + also sets *ssthresh* (slow start threshold) to cwnd/2
+  + if cwnd >= ssthresh, slow start ends and TCP transitions to congestion avoidance mode
+
+### congestion avoidance mode 
+
+general TCP state diagram as fsm
+
+![tcp states of congestion control](images/image-91.png)
+
+### fast recovery
+
+reiterate: this is recommended but not required by implementation specs
+
+![tcp tahoe/reno congestion windows](images/image-92.png)
++ note above that a triple duplicate ACK occurs at transmission round 9; note the different behaviors and lack of fast recovery
++ TCP Tahoe unconditionally cuts its congestion window whether timeout or triple duplicate ack -- doesn't have a fast recovery mode.
++ TCP Reno incorporates fast recovery
+  + note the drop to 9MSS instead of 1MSS above
+  + ss threash drops to 1/2 the cwnd for reno and taho
+  + but the difference is the change to cwnd
+
+
+![additive increase, multiplicative decrease AIMD def](images/image-93.png)
+
+side note: TCP cubic kinda tries to do reno level recovery but does so cubically rather than linearly, overall increasing the throughput we see go through
++ TCP cubic is default in the linux operating system??
++ ~50% of web servers are running this version as of 2014
+
+## side notes
+
++ changes to IP have enabled the possibility of marking a bit in the network to enable explicit network congestion notification
+
+![ECN bits setting ^^](images/image-94.png)
+
+TCP vegas uses the measurement of RTT as a way of controlling the sending rate, constantly monitoring it
++ keep pipe full, no fuller
+
+in a perfect world, TCP is fair
++ but -- UDP can obviously fuck everything up
++ parallel connections used by a single application can ALSO be inherantly unfair
+  + in perfect world: one TCP connection for each client and no other transport protocols to fight with it
