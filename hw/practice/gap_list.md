@@ -29,7 +29,7 @@
 
 + rdt versions? i don't want to waste space with that but if i do i do, and would love to not waste time memorization that.
 + principles of rdt
-+ d_nodal = d_q + d_proc + d_t + d_prop
-  + diff between d_t and d_prop?
-+ tcp rules (see TCP Problems on the review sheet) 
+~~+ d_nodal = d_q + d_proc + d_t + d_prop~~
+  ~~+ diff between d_t and d_prop?~~
+~~+ tcp rules (see TCP Problems on the review sheet)~~ 
 + pic of the network stack with little hint as to what each layer focuses on
