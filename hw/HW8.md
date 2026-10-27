@@ -115,6 +115,36 @@ Describe how your forwarding table determines the appropriate link interface for
 
 ### A3
 
+| Prefix | Link |
+| --- | --- |
+| 11100000 00 | 0 |
+| 11100000 01000000 | 1 |
+| 11100000 01 | 2 |
+| 11100001 0 | 2 |
+| otherwise | 3 |
+
+**dest 1**
+
+11001000 10010001 01010001 01010101 \
+11001 -> this prefix matches none of the above specified. 
+
+*goes to link 3*
+
+**dest 2**
+
+11100001 01000000 11000011 00111100 \
+11100001 -> longest prefix match possible.
+
+*goes to link 2*
+
+**dest 3**
+
+11100001 10000000 00010001 01110111 \
+11100001 -> begins matching what looks like link 2 \
+11100001 1 -> disqualifies match with link 2, no other matches.
+
+*goes to link 3*
+
 ## Q4
 
 On Thursday 10/29, Wesley Woo (Virginia Tech) will be joining us as a guest speaker. His paper, “Anyone, Anywhere, not Everyone, Everywhere: Starlink Doesn’t End the Digital Divide” (2025), is listed as optional reading on the course calendar.
