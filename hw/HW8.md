@@ -164,6 +164,13 @@ If you submit this assignment after the guest lecture that is alright. If you do
 
 ### A4
 
+**Things that stood out/confused** \
+Is a constellation just a funny term for an interconnected network of satellites for StarLink? Like, a Musk-branded term? I was also suprised to see that StarLink is so expensive. To see numbers like $125/mo was outright absurd for internet access. Maybe my bar is too low ($60/mo is about the northend of what I'm willing to budget personally), so to see twice my base expectation is alarming. Feels like it is more premier sattelite internet than promoting accessibility (accessible if you're a remote tech worker living your van-life, maybe).
+
+
+**Question for Wesley** \
+It's interesting to see the map with the number of underserved locations per starlink service cell (Figure 1). Why are there huge chunks in the middle-west of the country completely uncovered by starlink cells? Is there a particular reason for that or is it just not profitable to focus on the remote swathes of the country?
+
 ## Q5
 
 Did you use generative AI for any part of this assignment? If so, describe how.
