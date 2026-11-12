@@ -179,16 +179,19 @@ A packet sniffer is passive: it receives a copy of the frames your computer send
   \screenshot{4cm}{Q2_icmp.png}
 
   \item What IP protocol number do your probes use? What number would they use if your computer sent the other kind of probe, that is, UDP on Windows or ICMP on macOS and Linux? (See the protocol field in Section 4.3.)
-  \answer{[Your answer here.]}
+  \answer{[The protocol number is 1 (ICMP). If UDP was sent, it would use protocol number 17.]}
+
+  src list: 
+  + https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
 
   \item Look at the Identification and TTL fields of the ICMP packets returned by at least four different routers. Are the values similar across routers? Do they follow the same pattern as in the probes your computer sent?
-  \answer{[Your answer here.]}
+  \answer{[The values do differ, but many of them are consistently 0x0000. They do not seem to have the same increment pattern as the ones I sent.]}
 
   \item Examine the last three ICMP packets your computer received. How do they differ from the TTL-exceeded packets, and why? (If your traceroute did not reach the destination, say so.)
-  \answer{[Your answer here.]}
+  \answer{[These last 3 packets differ because they are from the destination IP (they successfully reached Oxford's host) and do not time out.]}
 
   \item Is there a link in your traceroute output whose delay is significantly longer than the others? If router names are shown, can you guess the locations of the two routers at its ends?
-  \answer{[Your answer here.]}
+  \answer{[Once you hit " dc-lax-agg8--unm-10g.cenic.net [137.164.50.193]", the delay was significantly longer, going from ~7 ms  to ~150 ms. So, my guess is that was a potential jump to another country (probably Europe) since I was pinging Oxford University's site.]}
 \end{questions}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
