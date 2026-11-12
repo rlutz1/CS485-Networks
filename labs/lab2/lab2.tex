@@ -1,0 +1,473 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{parskip}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+
+\setcounter{secnumdepth}{0}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  STUDENTS: FILL IN THIS LINE FIRST
+% done
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\myname}{Roxanne Krause}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{CS 485/585, Fall 2026}
+\fancyhead[R]{Lab 2: Wireshark}
+\fancyfoot[L]{\small \myname}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Helpers
+\newcommand{\cmd}[1]{\texttt{#1}}
+\newcommand{\screenshot}[2]{\par\medskip\noindent\fbox{\parbox[c][#1][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centering\small\color{gray}Screenshot: #2}}\par\medskip}
+\newcommand{\answer}[1]{\par\smallskip\noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{#1\vspace{1.2em}}}\par\smallskip}
+\newenvironment{steps}{\par\medskip\noindent\textbf{What to do}\begin{enumerate}[leftmargin=*,label=\arabic*.,itemsep=3pt]}{\end{enumerate}}
+\newenvironment{questions}[1]{\par\medskip\noindent\textbf{Questions}\begin{enumerate}[leftmargin=*,label=\textbf{Q#1.\arabic*},itemsep=8pt]}{\end{enumerate}}
+
+\begin{document}
+
+\begin{center}
+{\Large \textbf{CS 485/585: Computer Networks, Fall 2026}}\\[4pt]
+{\large \textbf{Lab 2: Packet Analysis with Wireshark}}\\[8pt]
+\textbf{Due:} Tuesday, November 24, 2026 \quad \textbf{Worth:} 100 points \quad \textbf{Mode:} Individual\\
+\textbf{Submit:} one PDF on Canvas, compiled from this template
+\end{center}
+
+\vspace{2pt}
+
+\section{Overview}
+
+In this lab you will use Wireshark to capture your own network traffic and examine ICMP, IP and IPv6 packets. There is no coding. The lab is a condensed adaptation of the \textit{Getting Started}, \textit{ICMP} and \textit{IP} Wireshark labs by Kurose and Ross (\texttt{gaia.cs.umass.edu/kurose\_ross}), with an added part on autonomous systems.
+
+\subsection*{How to use this template}
+
+Replace each gray \textit{Screenshot} box with your image. Put the image file in the same folder as this \texttt{.tex} file and use the line below. Screenshots must be legible.
+\begin{center}\cmd{\textbackslash includegraphics[width=\textbackslash linewidth]\{filename.png\}}\end{center}
+Replace the text inside each answer box with your answer, and fill in the tables. Short answers are fine. Where an answer depends on your operating system, say which one you used.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 0: Getting started with Wireshark (10 points)}
+
+A packet sniffer is passive: it receives a copy of the frames your computer sends and receives, and Wireshark displays the fields of each protocol layer inside them. In this part you capture the download of one web page.
+
+\textbf{Before you capture:} install Wireshark from \cmd{wireshark.org} (on Windows, accept Npcap; on macOS, install the ChmodBPF helper when offered; on Linux, run it with \cmd{sudo} or join the \texttt{wireshark} group). Make sure you are not running a VPN, since a VPN encrypts the protocol information you want to see. Clear your browser cache so the page is downloaded again.
+
+\begin{steps}
+  \item Open Wireshark. Double-click the interface whose activity graph is moving (usually Wi-Fi: \cmd{en0} on a Mac, ``Wi-Fi'' on Windows). Capturing starts right away.
+  \item In your browser, open the address below. It must start with \texttt{http://}, not \texttt{https://}. You should see a one-line page.
+  \begin{center}\small\cmd{http://gaia.cs.umass.edu/wireshark-labs/INTRO-wireshark-file1.html}\end{center}
+  If your browser forces HTTPS, run \cmd{curl} followed by that address in a terminal instead, and say so in your answers.
+  \item Stop the capture (red square). Type \cmd{http} in the display filter bar and press Enter.
+  \item Click the HTTP \textit{GET} message for that page. In the packet details window, collapse the Frame, Ethernet, IP and TCP sections and expand the HTTP section.
+\end{steps}
+
+
+\screenshot{5.5cm}{Q0.png}
+
+\begin{questions}{0}
+  \item Clear the display filter. Which of the following protocols appear in the Protocol column of your capture: TCP, QUIC, HTTP, DNS, UDP, TLSv1.2?
+  \answer{[Your answer here.]}
+
+  \item How long did it take from when the HTTP GET message was sent until the HTTP OK reply was received? (By default, the Time column shows seconds since the capture began.)
+  \answer{[Your answer here.]}
+
+  \item What is the Internet address of \texttt{gaia.cs.umass.edu}? What is the Internet address of your computer?
+  \answer{[Your answer here.]}
+
+  \item What type of web browser issued the HTTP request (see the \texttt{User-Agent} field)? What is the destination port number of the TCP segment containing the request?
+  \answer{[Your answer here.]}
+\end{questions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 1: ICMP and ping (15 points)}
+
+\texttt{ping} checks whether a host is alive by sending an ICMP echo request and waiting for an ICMP echo reply.
+
+\begin{steps}
+  \item Choose a university web server on another continent, preferably one with a European or Asian country-code domain (for example, \cmd{hkust.edu.hk}, or \cmd{www.inria.fr} as in the original labs). This is your destination. Use the same one in Parts 2 and 3.
+  \answer{Destination: [write it here]}
+  \item Open a terminal (Command Prompt on Windows). Start a new Wireshark capture and enter the display filter \cmd{icmp}.
+  \item Send 10 pings to your destination:
+  \begin{itemize}[itemsep=1pt]
+    \item Windows: \cmd{ping -n 10} \textit{destination}
+    \item macOS and Linux: \cmd{ping -c 10} \textit{destination}
+  \end{itemize}
+  \item When ping finishes, stop the capture. Click the first echo request and expand its \textit{Internet Protocol} and \textit{Internet Control Message Protocol} sections.
+\end{steps}
+
+\screenshot{4.5cm}{your terminal window after the ping command.}
+\screenshot{5cm}{Wireshark with the ICMP packet list and the first echo request expanded.}
+
+\begin{questions}{1}
+  \item What are the IP addresses of your host and of the destination host? Why do ICMP packets not have source and destination port numbers?
+  \answer{[Your answer here.]}
+
+  \item Examine one of the ping request packets. What are the ICMP type and code numbers? What other fields does it have? How many bytes are the checksum, sequence number and identifier fields?
+  \answer{[Your answer here.]}
+
+  \item Examine the corresponding ping reply packet and answer the same questions. (If the destination does not reply, say so.)
+  \answer{[Your answer here.]}
+\end{questions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 2: Traceroute, ICMP errors and the IP header (40 points)}
+
+\texttt{traceroute} sends a first probe with TTL = 1, a second with TTL = 2, and so on. A router that receives a packet with TTL = 1 drops it and returns an ICMP TTL-exceeded message, so the source addresses of these messages reveal the routers on the path. Windows (\cmd{tracert}) sends ICMP echo requests as probes. macOS and Linux send UDP datagrams to an unlikely port number.
+
+\begin{steps}
+  \item Start a new Wireshark capture. Windows: enter the display filter \cmd{icmp}. macOS and Linux: enter \cmd{udp || icmp}.
+  \item Run traceroute to the same destination you chose in Part 1:
+  \begin{itemize}[itemsep=1pt]
+    \item Windows: \cmd{tracert} \textit{destination}
+    \item macOS and Linux: \cmd{traceroute} \textit{destination} \quad (on Linux you may need to install it, and to run it with \cmd{sudo})
+  \end{itemize}
+  \item When it finishes, stop the capture. Keep your traceroute output for Part 3.
+\end{steps}
+
+\screenshot{5cm}{your terminal window showing the full traceroute output.}
+
+\begin{questions}{2}
+  \item Select the first probe your computer sent and expand its IP header. On Windows this is the first ICMP echo request. On macOS and Linux it is the first UDP packet sent to the destination's IP address (ignore DNS and other UDP traffic). Fill in the table.
+  \begin{center}
+  \renewcommand{\arraystretch}{1.7}
+  \begin{tabular}{@{}p{5.2cm}p{7cm}@{}}
+  \toprule
+  \textbf{Field} & \textbf{Value} \\
+  \midrule
+  IP address of your computer & \\
+  Time to Live & \\
+  Protocol (number and name) & \\
+  IP header length (bytes) & \\
+  Total Length (bytes) & \\
+  Payload length (bytes) & \\
+  \bottomrule
+  \end{tabular}
+  \end{center}
+  Explain how you determined the payload length. Has the datagram been fragmented? How can you tell (see the Flags and Fragment Offset fields)?
+  \answer{[Your answer here.]}
+  \screenshot{4cm}{the expanded IP header of that probe.}
+
+  \item Look at the sequence of probes your computer sent. Which IP header fields always change from one probe to the next, and why? Which stay constant, and why? Describe the pattern in the Identification field.
+  \answer{[Your answer here.]}
+
+  \item Examine one of the ICMP TTL-exceeded packets returned by a router. What are its ICMP type and code? It has more fields than an echo packet. What additional information does it include?
+  \answer{[Your answer here.]}
+  \screenshot{4cm}{the expanded ICMP TTL-exceeded packet.}
+
+  \item What IP protocol number do your probes use? What number would they use if your computer sent the other kind of probe, that is, UDP on Windows or ICMP on macOS and Linux? (See the protocol field in Section 4.3.)
+  \answer{[Your answer here.]}
+
+  \item Look at the Identification and TTL fields of the ICMP packets returned by at least four different routers. Are the values similar across routers? Do they follow the same pattern as in the probes your computer sent?
+  \answer{[Your answer here.]}
+
+  \item Examine the last three ICMP packets your computer received. How do they differ from the TTL-exceeded packets, and why? (If your traceroute did not reach the destination, say so.)
+  \answer{[Your answer here.]}
+
+  \item Is there a link in your traceroute output whose delay is significantly longer than the others? If router names are shown, can you guess the locations of the two routers at its ends?
+  \answer{[Your answer here.]}
+\end{questions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 3: Autonomous Systems (15 points)}
+
+The Internet is a collection of autonomous systems (ASes), each identified by an AS number. From your Part 2 traceroute output, choose four public hop addresses that answered, including the first public hop and some further along the path. Look up each one at \cmd{bgp.he.net} (paste the address into the search box) and fill in the table, in hop order. If a lookup shows no AS, choose a different hop.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.9}
+\begin{tabular}{@{}cp{3.2cm}p{3.2cm}p{4.8cm}@{}}
+\toprule
+\textbf{Hop} & \textbf{IP address} & \textbf{Prefix (CIDR)} & \textbf{Origin AS (number and name)} \\
+\midrule
+ & & & \\
+ & & & \\
+ & & & \\
+ & & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{questions}{3}
+  \item Which AS owns your first public hop? Between which two of your hops does the path first move from one AS to another?
+  \answer{[Your answer here.]}
+\end{questions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 4: IPv6 (15 points)}
+
+Download \texttt{ip-wireshark-trace2-1.pcapng} from the Canvas assignment page and open it in Wireshark (\textit{File}, then \textit{Open}). Packet 20 is a DNS request, sent in an IPv6 datagram, for the IPv6 address (AAAA record) of \texttt{youtube.com}.
+
+\begin{questions}{4}
+  \item What are the source and destination IPv6 addresses of packet 20? Give them exactly as displayed in Wireshark.
+  \answer{[Your answer here.]}
+
+  \item What are the flow label and the payload length of this datagram? To which upper-layer protocol will the payload be delivered?
+  \answer{[Your answer here.]}
+
+  \item Find the DNS response to this request (hint: filter on \cmd{dns}). How many IPv6 addresses does it return, and what is the first one?
+  \answer{[Your answer here.]}
+\end{questions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 5: References (5 points)}
+
+\begin{questions}{5}
+  \item What sources did you use for help on this lab (for example, textbook sections, lecture slides, websites, or classmates)?
+  \answer{[Your answer here.]}
+
+  \item Did you use generative AI for any part of this assignment? If so, describe how.
+  \answer{[Your answer here.]}
+\end{questions}
+
+\subsection*{Before you submit}
+
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item Your name is filled in at the top of the file.
+  \item Every screenshot box has been replaced by an image.
+  \item Upload the compiled PDF to Canvas as \texttt{Lab2\_First\_Last.pdf}.
+\end{itemize}
+
+\end{document}\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{parskip}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+
+\setcounter{secnumdepth}{0}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  STUDENTS: FILL IN THIS LINE FIRST
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\myname}{Your Name}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{CS 485/585, Fall 2026}
+\fancyhead[R]{Lab 2: Wireshark}
+\fancyfoot[L]{\small \myname}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Helpers
+\newcommand{\cmd}[1]{\texttt{#1}}
+\newcommand{\screenshot}[2]{\par\medskip\noindent\fbox{\parbox[c][#1][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centering\small\color{gray}Screenshot: #2}}\par\medskip}
+\newcommand{\answer}[1]{\par\smallskip\noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{#1\vspace{1.2em}}}\par\smallskip}
+\newenvironment{steps}{\par\medskip\noindent\textbf{What to do}\begin{enumerate}[leftmargin=*,label=\arabic*.,itemsep=3pt]}{\end{enumerate}}
+\newenvironment{questions}[1]{\par\medskip\noindent\textbf{Questions}\begin{enumerate}[leftmargin=*,label=\textbf{Q#1.\arabic*},itemsep=8pt]}{\end{enumerate}}
+
+\begin{document}
+
+\begin{center}
+{\Large \textbf{CS 485/585: Computer Networks, Fall 2026}}\\[4pt]
+{\large \textbf{Lab 2: Packet Analysis with Wireshark}}\\[8pt]
+\textbf{Due:} Tuesday, November 24, 2026 \quad \textbf{Worth:} 100 points \quad \textbf{Mode:} Individual\\
+\textbf{Submit:} one PDF on Canvas, compiled from this template
+\end{center}
+
+\vspace{2pt}
+
+\section{Overview}
+
+In this lab you will use Wireshark to capture your own network traffic and examine ICMP, IP and IPv6 packets. There is no coding. The lab is a condensed adaptation of the \textit{Getting Started}, \textit{ICMP} and \textit{IP} Wireshark labs by Kurose and Ross (\texttt{gaia.cs.umass.edu/kurose\_ross}), with an added part on autonomous systems.
+
+\subsection*{How to use this template}
+
+Replace each gray \textit{Screenshot} box with your image. Put the image file in the same folder as this \texttt{.tex} file and use the line below. Screenshots must be legible.
+\begin{center}\cmd{\textbackslash includegraphics[width=\textbackslash linewidth]\{filename.png\}}\end{center}
+Replace the text inside each answer box with your answer, and fill in the tables. Short answers are fine. Where an answer depends on your operating system, say which one you used.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 0: Getting started with Wireshark (10 points)}
+
+A packet sniffer is passive: it receives a copy of the frames your computer sends and receives, and Wireshark displays the fields of each protocol layer inside them. In this part you capture the download of one web page.
+
+\textbf{Before you capture:} install Wireshark from \cmd{wireshark.org} (on Windows, accept Npcap; on macOS, install the ChmodBPF helper when offered; on Linux, run it with \cmd{sudo} or join the \texttt{wireshark} group). Make sure you are not running a VPN, since a VPN encrypts the protocol information you want to see. Clear your browser cache so the page is downloaded again.
+
+\begin{steps}
+  \item Open Wireshark. Double-click the interface whose activity graph is moving (usually Wi-Fi: \cmd{en0} on a Mac, ``Wi-Fi'' on Windows). Capturing starts right away.
+  \item In your browser, open the address below. It must start with \texttt{http://}, not \texttt{https://}. You should see a one-line page.
+  \begin{center}\small\cmd{http://gaia.cs.umass.edu/wireshark-labs/INTRO-wireshark-file1.html}\end{center}
+  If your browser forces HTTPS, run \cmd{curl} followed by that address in a terminal instead, and say so in your answers.
+  \item Stop the capture (red square). Type \cmd{http} in the display filter bar and press Enter.
+  \item Click the HTTP \textit{GET} message for that page. In the packet details window, collapse the Frame, Ethernet, IP and TCP sections and expand the HTTP section.
+\end{steps}
+
+\screenshot{5.5cm}{Wireshark with the \texttt{http} filter applied, the GET message selected, and the HTTP section expanded.}
+
+\begin{questions}{0}
+  \item Clear the display filter. Which of the following protocols appear in the Protocol column of your capture: TCP, QUIC, HTTP, DNS, UDP, TLSv1.2?
+  \answer{[Your answer here.]}
+
+  \item How long did it take from when the HTTP GET message was sent until the HTTP OK reply was received? (By default, the Time column shows seconds since the capture began.)
+  \answer{[Your answer here.]}
+
+  \item What is the Internet address of \texttt{gaia.cs.umass.edu}? What is the Internet address of your computer?
+  \answer{[Your answer here.]}
+
+  \item What type of web browser issued the HTTP request (see the \texttt{User-Agent} field)? What is the destination port number of the TCP segment containing the request?
+  \answer{[Your answer here.]}
+\end{questions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 1: ICMP and ping (15 points)}
+
+\texttt{ping} checks whether a host is alive by sending an ICMP echo request and waiting for an ICMP echo reply.
+
+\begin{steps}
+  \item Choose a university web server on another continent, preferably one with a European or Asian country-code domain (for example, \cmd{hkust.edu.hk}, or \cmd{www.inria.fr} as in the original labs). This is your destination. Use the same one in Parts 2 and 3.
+  \answer{Destination: [write it here]}
+  \item Open a terminal (Command Prompt on Windows). Start a new Wireshark capture and enter the display filter \cmd{icmp}.
+  \item Send 10 pings to your destination:
+  \begin{itemize}[itemsep=1pt]
+    \item Windows: \cmd{ping -n 10} \textit{destination}
+    \item macOS and Linux: \cmd{ping -c 10} \textit{destination}
+  \end{itemize}
+  \item When ping finishes, stop the capture. Click the first echo request and expand its \textit{Internet Protocol} and \textit{Internet Control Message Protocol} sections.
+\end{steps}
+
+\screenshot{4.5cm}{your terminal window after the ping command.}
+\screenshot{5cm}{Wireshark with the ICMP packet list and the first echo request expanded.}
+
+\begin{questions}{1}
+  \item What are the IP addresses of your host and of the destination host? Why do ICMP packets not have source and destination port numbers?
+  \answer{[Your answer here.]}
+
+  \item Examine one of the ping request packets. What are the ICMP type and code numbers? What other fields does it have? How many bytes are the checksum, sequence number and identifier fields?
+  \answer{[Your answer here.]}
+
+  \item Examine the corresponding ping reply packet and answer the same questions. (If the destination does not reply, say so.)
+  \answer{[Your answer here.]}
+\end{questions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 2: Traceroute, ICMP errors and the IP header (40 points)}
+
+\texttt{traceroute} sends a first probe with TTL = 1, a second with TTL = 2, and so on. A router that receives a packet with TTL = 1 drops it and returns an ICMP TTL-exceeded message, so the source addresses of these messages reveal the routers on the path. Windows (\cmd{tracert}) sends ICMP echo requests as probes. macOS and Linux send UDP datagrams to an unlikely port number.
+
+\begin{steps}
+  \item Start a new Wireshark capture. Windows: enter the display filter \cmd{icmp}. macOS and Linux: enter \cmd{udp || icmp}.
+  \item Run traceroute to the same destination you chose in Part 1:
+  \begin{itemize}[itemsep=1pt]
+    \item Windows: \cmd{tracert} \textit{destination}
+    \item macOS and Linux: \cmd{traceroute} \textit{destination} \quad (on Linux you may need to install it, and to run it with \cmd{sudo})
+  \end{itemize}
+  \item When it finishes, stop the capture. Keep your traceroute output for Part 3.
+\end{steps}
+
+\screenshot{5cm}{your terminal window showing the full traceroute output.}
+
+\begin{questions}{2}
+  \item Select the first probe your computer sent and expand its IP header. On Windows this is the first ICMP echo request. On macOS and Linux it is the first UDP packet sent to the destination's IP address (ignore DNS and other UDP traffic). Fill in the table.
+  \begin{center}
+  \renewcommand{\arraystretch}{1.7}
+  \begin{tabular}{@{}p{5.2cm}p{7cm}@{}}
+  \toprule
+  \textbf{Field} & \textbf{Value} \\
+  \midrule
+  IP address of your computer & \\
+  Time to Live & \\
+  Protocol (number and name) & \\
+  IP header length (bytes) & \\
+  Total Length (bytes) & \\
+  Payload length (bytes) & \\
+  \bottomrule
+  \end{tabular}
+  \end{center}
+  Explain how you determined the payload length. Has the datagram been fragmented? How can you tell (see the Flags and Fragment Offset fields)?
+  \answer{[Your answer here.]}
+  \screenshot{4cm}{the expanded IP header of that probe.}
+
+  \item Look at the sequence of probes your computer sent. Which IP header fields always change from one probe to the next, and why? Which stay constant, and why? Describe the pattern in the Identification field.
+  \answer{[Your answer here.]}
+
+  \item Examine one of the ICMP TTL-exceeded packets returned by a router. What are its ICMP type and code? It has more fields than an echo packet. What additional information does it include?
+  \answer{[Your answer here.]}
+  \screenshot{4cm}{the expanded ICMP TTL-exceeded packet.}
+
+  \item What IP protocol number do your probes use? What number would they use if your computer sent the other kind of probe, that is, UDP on Windows or ICMP on macOS and Linux? (See the protocol field in Section 4.3.)
+  \answer{[Your answer here.]}
+
+  \item Look at the Identification and TTL fields of the ICMP packets returned by at least four different routers. Are the values similar across routers? Do they follow the same pattern as in the probes your computer sent?
+  \answer{[Your answer here.]}
+
+  \item Examine the last three ICMP packets your computer received. How do they differ from the TTL-exceeded packets, and why? (If your traceroute did not reach the destination, say so.)
+  \answer{[Your answer here.]}
+
+  \item Is there a link in your traceroute output whose delay is significantly longer than the others? If router names are shown, can you guess the locations of the two routers at its ends?
+  \answer{[Your answer here.]}
+\end{questions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 3: Autonomous Systems (15 points)}
+
+The Internet is a collection of autonomous systems (ASes), each identified by an AS number. From your Part 2 traceroute output, choose four public hop addresses that answered, including the first public hop and some further along the path. Look up each one at \cmd{bgp.he.net} (paste the address into the search box) and fill in the table, in hop order. If a lookup shows no AS, choose a different hop.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.9}
+\begin{tabular}{@{}cp{3.2cm}p{3.2cm}p{4.8cm}@{}}
+\toprule
+\textbf{Hop} & \textbf{IP address} & \textbf{Prefix (CIDR)} & \textbf{Origin AS (number and name)} \\
+\midrule
+ & & & \\
+ & & & \\
+ & & & \\
+ & & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{questions}{3}
+  \item Which AS owns your first public hop? Between which two of your hops does the path first move from one AS to another?
+  \answer{[Your answer here.]}
+\end{questions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 4: IPv6 (15 points)}
+
+Download \texttt{ip-wireshark-trace2-1.pcapng} from the Canvas assignment page and open it in Wireshark (\textit{File}, then \textit{Open}). Packet 20 is a DNS request, sent in an IPv6 datagram, for the IPv6 address (AAAA record) of \texttt{youtube.com}.
+
+\begin{questions}{4}
+  \item What are the source and destination IPv6 addresses of packet 20? Give them exactly as displayed in Wireshark.
+  \answer{[Your answer here.]}
+
+  \item What are the flow label and the payload length of this datagram? To which upper-layer protocol will the payload be delivered?
+  \answer{[Your answer here.]}
+
+  \item Find the DNS response to this request (hint: filter on \cmd{dns}). How many IPv6 addresses does it return, and what is the first one?
+  \answer{[Your answer here.]}
+\end{questions}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Part 5: References (5 points)}
+
+\begin{questions}{5}
+  \item What sources did you use for help on this lab (for example, textbook sections, lecture slides, websites, or classmates)?
+  \answer{[Your answer here.]}
+
+  \item Did you use generative AI for any part of this assignment? If so, describe how.
+  \answer{[Your answer here.]}
+\end{questions}
+
+\subsection*{Before you submit}
+
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item Your name is filled in at the top of the file.
+  \item Every screenshot box has been replaced by an image.
+  \item Upload the compiled PDF to Canvas as \texttt{Lab2\_First\_Last.pdf}.
+\end{itemize}
+
+\end{document}

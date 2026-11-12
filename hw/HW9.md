@@ -14,6 +14,7 @@ Compare and contrast link-state and distance-vector routing algorithms. For each
 
 ### A1
 
+For link-state, this algorithm must have a global knowledge of the network, knowing not just its own direct paths but all paths in the network-scope it is calculating for. This can be seen in the update rules, which rely on knowledge of path weights from non-neighbors to properly compute the least-cost path properly from a single source node. The distance-vector approach, however, relies on only what is told by neighbors. The information propogates out with each time step, also allowing a certain adjustability and malleability within the network. Further, link-state will take longer to compute for a single router since it must iterate through the entire network-scope in order to find the best path and must do so to compensate for any changes; distance-vector, however, can adjust over time, which will affect the rate at which routers are aware of changes potentially, but algorithms like Bellman-Ford are notable due to their parallelizable nature, so that should be accounted for in this consideration. Lastly, link-state can perform its calculation separately from other routers, whereas a faulty calculation by one router in distance-vector could cause a rippling effect of errors. 
 
 #### Section from book for q1 that's helpful
 
@@ -64,9 +65,9 @@ rithms are used in the Internet
 
 What is the “count to infinity” problem in distance-vector routing?
 
-### A3
+### A2
 
-The count to infinity problem is a tricky issue in which the alteration of a network cost (increasing a cost, a connection disappearing) results in an erroneous recalculation of a node to its distance vector table. The "global-view-incorrect" calculation is then sent to other nodes, which in turn update incorrectly. In this case, the incorrect calclulations slowly increase the local cost of a route in a looping fashion, slowly counting to infinity.
+The count to infinity problem is a tricky issue in which the alteration of a network cost (such as increasing a cost, a connection disappearing) results in an erroneous recalculation of a node to its distance vector table. The "global-view-incorrect" calculation is then sent to other nodes, which in turn update incorrectly. In this case, the incorrect calclulations slowly increase the local cost of a route in a looping fashion, slowly counting to infinity.
 
 A simple example below: 
 
@@ -96,7 +97,7 @@ And then we lose connection to C.
 A <-1-> B / C
 ```
 
-B is aware the connection ends, and it can see that A has a way to get to C since it can get to A. So, that value is used
+B is aware the connection ends, and it must recalculate, using the value for A -> C.
 
 ```
 A ->
