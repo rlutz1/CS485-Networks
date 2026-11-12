@@ -199,24 +199,33 @@ A packet sniffer is passive: it receives a copy of the frames your computer send
 
 The Internet is a collection of autonomous systems (ASes), each identified by an AS number. From your Part 2 traceroute output, choose four public hop addresses that answered, including the first public hop and some further along the path. Look up each one at \cmd{bgp.he.net} (paste the address into the search box) and fill in the table, in hop order. If a lookup shows no AS, choose a different hop.
 
+% CHOOSING: 
+  % 4   129 ms   126 ms   127 ms  dc-lax-agg8--unm-10g.cenic.net [137.164.50.193] 
+  % 5   123 ms   170 ms   156 ms  141.101.72.12 
+  % 6   230 ms   126 ms     *     141.101.72.105 
+  % 8   123 ms   165 ms   124 ms  104.20.34.13
+
 \begin{center}
 \renewcommand{\arraystretch}{1.9}
 \begin{tabular}{@{}cp{3.2cm}p{3.2cm}p{4.8cm}@{}}
 \toprule
 \textbf{Hop} & \textbf{IP address} & \textbf{Prefix (CIDR)} & \textbf{Origin AS (number and name)} \\
 \midrule
- & & & \\
- & & & \\
- & & & \\
- & & & \\
+4 & 137.164.50.193 & 137.164.0.0/16  & AS2152 (CENIC) \\
+5 & 141.101.72.12  & 141.101.72.0/24 & AS13335 (Cloudflare, Inc) \\
+6 & 141.101.72.105 & 141.101.72.0/24  & AS13335 (Cloudflare, Inc) \\
+8 & 104.20.34.13   & 104.20.32.0/20 & AS13335 (Cloudflare, Inc) \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \begin{questions}{3}
   \item Which AS owns your first public hop? Between which two of your hops does the path first move from one AS to another?
-  \answer{[Your answer here.]}
+  \answer{[CENIC owns my first public hop. CENIC provides fiber connectivity and connection points across California. The first hop from private to public was 3 to 4. Then 4 to 5 is the first hop from one AS to another.]}
 \end{questions}
+
+src list 
++ https://cenic.org/network
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Part 4: IPv6 (15 points)}
@@ -225,13 +234,15 @@ Download \texttt{ip-wireshark-trace2-1.pcapng} from the Canvas assignment page a
 
 \begin{questions}{4}
   \item What are the source and destination IPv6 addresses of packet 20? Give them exactly as displayed in Wireshark.
-  \answer{[Your answer here.]}
+  \answer{[Source: 2601:193:8302:4620:215c:f5ae:8b40:a27. Destination: 2001:558:feed::1]}
 
   \item What are the flow label and the payload length of this datagram? To which upper-layer protocol will the payload be delivered?
-  \answer{[Your answer here.]}
+  \answer{[Flow Label: 0x63ed0. Payload length: 37. The upper level protocol that will receive the payload is UDP.]}
 
   \item Find the DNS response to this request (hint: filter on \cmd{dns}). How many IPv6 addresses does it return, and what is the first one?
-  \answer{[Your answer here.]}
+  \answer{[2607:f8b0:4006:815::200e
+    NOTE FOR ME: i'm only seeing one in the direct response. need to see why i should see multiple?
+  ]}
 \end{questions}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -239,10 +250,10 @@ Download \texttt{ip-wireshark-trace2-1.pcapng} from the Canvas assignment page a
 
 \begin{questions}{5}
   \item What sources did you use for help on this lab (for example, textbook sections, lecture slides, websites, or classmates)?
-  \answer{[Your answer here.]}
+  \answer{[TODO: list all links down here as collected above.]}
 
   \item Did you use generative AI for any part of this assignment? If so, describe how.
-  \answer{[Your answer here.]}
+  \answer{[I did not use generative AI for any part of this assignment.]}
 \end{questions}
 
 \subsection*{Before you submit}

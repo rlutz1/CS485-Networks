@@ -14,3 +14,9 @@ tracert www.ox.ac.uk
 ![alt text](images/image.png)
 
 ![alt text](images/image.png)
+
+C:\Users\lutzr\OneDrive\Desktop\UNM
+
+showing the response -- not sure why it says there should be multiple IP's?
+
+![alt text](images/image.png)
