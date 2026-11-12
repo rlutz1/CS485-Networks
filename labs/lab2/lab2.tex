@@ -143,6 +143,8 @@ A packet sniffer is passive: it receives a copy of the frames your computer send
 \screenshot{5cm}{Q2_tracert.png}
 
 \begin{questions}{2}
+  NOTE: I changed WiFi connections between last question and this, so my IP is now registering as 10.88.198.243 and ping is now showing Oxford at 104.20.34.13.
+
   \item Select the first probe your computer sent and expand its IP header. On Windows this is the first ICMP echo request. On macOS and Linux it is the first UDP packet sent to the destination's IP address (ignore DNS and other UDP traffic). Fill in the table.
   \begin{center}
   \renewcommand{\arraystretch}{1.7}
@@ -150,18 +152,21 @@ A packet sniffer is passive: it receives a copy of the frames your computer send
   \toprule
   \textbf{Field} & \textbf{Value} \\
   \midrule
-  IP address of your computer & \\
-  Time to Live & \\
-  Protocol (number and name) & \\
-  IP header length (bytes) & \\
-  Total Length (bytes) & \\
-  Payload length (bytes) & \\
+  IP address of your computer & 10.88.198.243 \\
+  Time to Live & 1 \\
+  Protocol (number and name) & ICMP (1) \\
+  IP header length (bytes) & 20 \\
+  Total Length (bytes) & 92 \\ % Total Length field (ip.len)
+  Payload length (bytes) & 72 \\ % total length - ip header
   \bottomrule
   \end{tabular}
   \end{center}
   Explain how you determined the payload length. Has the datagram been fragmented? How can you tell (see the Flags and Fragment Offset fields)?
-  \answer{[Your answer here.]}
-  \screenshot{4cm}{the expanded IP header of that probe.}
+  \answer{[The payload length is anything that is not in the header, so if the total IP size is 92 bytes, and the header is 20 bytes: payload = 92 - 20 = 72 bytes. The datagram has not been fragmented because the fragment bit is not set and the fragment offset is not greater than 0.]}
+  src list: 
+  + https://osqa-ask.wireshark.org/questions/44512/data-length/
+  + https://osqa-ask.wireshark.org/questions/41152/how-to-check-if-fragmentation-is-happening/
+  \screenshot{4cm}{Q2_ip.png}
 
   \item Look at the sequence of probes your computer sent. Which IP header fields always change from one probe to the next, and why? Which stay constant, and why? Describe the pattern in the Identification field.
   \answer{[Your answer here.]}

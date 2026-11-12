@@ -10,3 +10,5 @@ ping -n 10 www.ox.ac.uk
 tracert www.ox.ac.uk
 
 ![alt text](images/image.png)
+
+![alt text](images/image.png)
