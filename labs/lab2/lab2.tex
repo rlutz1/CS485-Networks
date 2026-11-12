@@ -175,8 +175,8 @@ A packet sniffer is passive: it receives a copy of the frames your computer send
   + https://www.freekb.net/Article?id=131
 
   \item Examine one of the ICMP TTL-exceeded packets returned by a router. What are its ICMP type and code? It has more fields than an echo packet. What additional information does it include?
-  \answer{[Your answer here.]}
-  \screenshot{4cm}{the expanded ICMP TTL-exceeded packet.}
+  \answer{[ICMP type is: Time-to-live exceeded (11), and code 0 (Time to live exceeded in transit). It appears to include a copy of the original echo I sent through, along with the new updated type and code information given the failure.]}
+  \screenshot{4cm}{Q2_icmp.png}
 
   \item What IP protocol number do your probes use? What number would they use if your computer sent the other kind of probe, that is, UDP on Windows or ICMP on macOS and Linux? (See the protocol field in Section 4.3.)
   \answer{[Your answer here.]}
