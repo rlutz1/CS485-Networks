@@ -109,7 +109,11 @@ A packet sniffer is passive: it receives a copy of the frames your computer send
 
 \begin{questions}{1}
   \item What are the IP addresses of your host and of the destination host? Why do ICMP packets not have source and destination port numbers?
-  \answer{[Your answer here.]}
+  \answer{[My IP address is 192.168.10.239; the destination host (Oxford University's site) is 172.66.169.161. ICMP is a protocol within the Internet protocol suite, and is mainly used to provide simple error messages or light communication between hosts/routers, and primarily used for diagnostics. At the base layer then, ICMP is not a transport layer protocol, and therefore port numbers are not relevant to it's layer information--its only purpose is to communicate host to host, not process to process.]}
+
+  src list: 
+  + https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol
+  + https://networkengineering.stackexchange.com/questions/50955/why-doesn-t-icmp-use-port-numbers
 
   \item Examine one of the ping request packets. What are the ICMP type and code numbers? What other fields does it have? How many bytes are the checksum, sequence number and identifier fields?
   \answer{[Your answer here.]}
