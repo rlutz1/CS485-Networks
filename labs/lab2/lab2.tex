@@ -116,10 +116,13 @@ A packet sniffer is passive: it receives a copy of the frames your computer send
   + https://networkengineering.stackexchange.com/questions/50955/why-doesn-t-icmp-use-port-numbers
 
   \item Examine one of the ping request packets. What are the ICMP type and code numbers? What other fields does it have? How many bytes are the checksum, sequence number and identifier fields?
-  \answer{[Your answer here.]}
+  \answer{[The type field simply indicates what kind of ICMP message this is (8 means an echo request, and 0 means an echo reply). The code field allows for additional "context" for the message. For example: a type 3 (Destination Unreachable) flag sent out could have many meanings, but the code can add on additional information about what exactly is unreachable (code 5 -> source route failed). The main header components include type, code, and checksum. But, the rest of it appears to have Identifiers, sequence numbers, and a data section that is copied information from the IP header and the first 8 bytes of the IP packet that caused the header. Type has 1 byte, code has 1 byte, checksum has 2 bytes, and identifiers also have 2 bytes.]}
+
+  src list:
+  + https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages
 
   \item Examine the corresponding ping reply packet and answer the same questions. (If the destination does not reply, say so.)
-  \answer{[Your answer here.]}
+  \answer{[Since this is a reply, the type number is 0 and the code number is also 0. (There is no other code number for simple echos.) It has all the same other fields listed above. Further, the same amount of bytes are used for all fields.]}
 \end{questions}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
