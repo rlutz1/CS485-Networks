@@ -169,7 +169,10 @@ A packet sniffer is passive: it receives a copy of the frames your computer send
   \screenshot{4cm}{Q2_ip.png}
 
   \item Look at the sequence of probes your computer sent. Which IP header fields always change from one probe to the next, and why? Which stay constant, and why? Describe the pattern in the Identification field.
-  \answer{[Your answer here.]}
+  \answer{[The fields that change consistently are: Total length, Identification, Time to live, Header checksum, Source/Destination address, and Stream index. The total length changing is just fine -- since the header length stays at 20 bytes, it just means the payload is different on each return; on each send, I do keep the same total length of 92. The Identification field increments one at a time with each send from my machine: 34588, 34589, 34590.... ID's received are more sporadic, but that is due to receving them from multiple machines. Time to live of packets sent changes due to the nature of what tracert is doing, as mentioned above, by sending packets with TTL 1, then 2, etc, to be able to trace the path. The header checksum is just the checksum value for validating no header corruption, so that will of course change depeding on the header fields. Source and destination address changing is self-explanatory, but it changes due to the length of the route in that tracert step. My source and destination of sent packets will always be my IP and Oxford's IP, but the reponses will have a destination of my IP and their IP as the source, effectively tracing the route. Finally, stream index is actually a WireShark tracking mechanism for grouping a TCP session for debugging information.]}
+
+  src list: 
+  + https://www.freekb.net/Article?id=131
 
   \item Examine one of the ICMP TTL-exceeded packets returned by a router. What are its ICMP type and code? It has more fields than an echo packet. What additional information does it include?
   \answer{[Your answer here.]}
